@@ -11,14 +11,15 @@ class AnalyticsView extends GetView<AnalyticsController> {
     return Scaffold(
       backgroundColor: kSurface,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             _Header(),
             Expanded(child: _Body()),
-            _BottomNav(),
           ],
         ),
       ),
+      bottomNavigationBar: SafeArea(top: false, child: _BottomNav()),
     );
   }
 }
@@ -78,7 +79,7 @@ class _Header extends GetView<AnalyticsController> {
 class _Body extends GetView<AnalyticsController> {
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -92,7 +93,6 @@ class _Body extends GetView<AnalyticsController> {
         _Heatmap(),
         const SectionLabel('Cost'),
         _CostChart(),
-        const SizedBox(height: 28),
       ],
     ),
   );
@@ -110,7 +110,7 @@ class _KpiGrid extends GetView<AnalyticsController> {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 10,
       mainAxisSpacing: 10,
-      childAspectRatio: 1.55,
+      childAspectRatio: 1.50,
       children: [
         KpiCard(
           label: 'Total units',

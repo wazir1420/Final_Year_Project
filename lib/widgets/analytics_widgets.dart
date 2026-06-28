@@ -107,7 +107,7 @@ class KpiCard extends StatelessWidget {
         ? const Color(0xFF16A34A)
         : const Color(0xFFDC2626);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -115,9 +115,10 @@ class KpiCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontSize: 12, color: kMuted)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             value,
             style: const TextStyle(
@@ -126,7 +127,7 @@ class KpiCard extends StatelessWidget {
               color: kPrimary,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 6),
           Text(delta, style: TextStyle(fontSize: 12, color: deltaColor)),
         ],
       ),
@@ -164,9 +165,9 @@ class ComparisonBarChart extends StatelessWidget {
               color: kPrimary,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           SizedBox(
-            height: 180,
+            height: 176,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: data.map((entry) {
@@ -176,7 +177,7 @@ class ComparisonBarChart extends StatelessWidget {
                 final previousHeight = maxKwh > 0
                     ? (entry.prevKwh / maxKwh).clamp(0.05, 1.0)
                     : 0.05;
-                const barMaxHeight = 70.0;
+                const barMaxHeight = 64.0;
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 3),
