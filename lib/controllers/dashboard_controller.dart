@@ -150,7 +150,7 @@ class DashboardController extends GetxController {
   }
 
   void goToSettings() {
-    selectTab(3);
+    Get.toNamed(AppRoutes.settings);
   }
 
   void goToMlDetail() {

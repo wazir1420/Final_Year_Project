@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/bills_controller.dart';
+import '../routes/app_routes.dart';
 import '../widgets/bills_widgets.dart';
 
 class BillsView extends GetView<BillsController> {
@@ -192,7 +193,7 @@ class _BottomNav extends StatelessWidget {
               Icons.settings_rounded,
               'Settings',
               false,
-              () => Get.toNamed('/settings'),
+              () => Get.toNamed(AppRoutes.settings),
             ),
           ],
         ),

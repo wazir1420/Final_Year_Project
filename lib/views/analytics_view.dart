@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/analytics_controller.dart';
+import '../routes/app_routes.dart';
 import '../widgets/analytics_widgets.dart';
 
 class AnalyticsView extends GetView<AnalyticsController> {
@@ -225,7 +226,7 @@ class _BottomNav extends GetView<AnalyticsController> {
               Icons.settings_rounded,
               'Settings',
               false,
-              () => Get.toNamed('/settings'),
+              () => Get.toNamed(AppRoutes.settings),
             ),
           ],
         ),
