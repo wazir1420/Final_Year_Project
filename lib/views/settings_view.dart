@@ -52,6 +52,7 @@ class SettingsView extends GetView<SettingsController> {
 
   Widget _divider() => const Divider(height: 1);
 
+  // ignore: unused_element
   String _initials(String name) {
     final parts = name.trim().split(' ');
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
@@ -74,15 +75,7 @@ class SettingsView extends GetView<SettingsController> {
             CircleAvatar(
               radius: 24,
               backgroundColor: const Color(0xFFE6F1FB),
-              child: Obx(
-                () => Text(
-                  _initials(controller.userName.value),
-                  style: const TextStyle(
-                    color: Color(0xFF185FA5),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              backgroundImage: const AssetImage('assets/images/wazir.png'),
             ),
             const SizedBox(width: 12),
             Expanded(

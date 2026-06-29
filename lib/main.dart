@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import 'routes/app_routes.dart';
 
 void main() {
@@ -13,9 +14,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.dashboard,
+
+      initialRoute: AppRoutes.splash,
+
       defaultTransition: Transition.fadeIn,
+
       getPages: AppRoutes.pages,
+
       unknownRoute: GetPage(
         name: '/not-found',
         page: () => const _NotFoundView(),

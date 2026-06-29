@@ -4,8 +4,8 @@ import 'package:get/get.dart';
 class SettingsController extends GetxController {
   // Account summary — swap these for your AuthController / ProfileController
   // once that's wired up, e.g. Get.find<ProfileController>().name
-  final userName = 'Ahmed Khan'.obs;
-  final userEmail = 'ahmed.khan@email.com'.obs;
+  final userName = 'Wazir Tatheer'.obs;
+  final userEmail = 'wazirbalti1@gmail.com'.obs;
 
   // Alerts
   final billThresholdAlert = true.obs;
