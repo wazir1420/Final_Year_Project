@@ -5,7 +5,6 @@ import '../models/analytics_model.dart';
 /// Swap each method for a Firebase/API call when your meter is ready.
 class AnalyticsDummyService {
   final _rng = Random();
-
   static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   static const _dayLabels = ['12a', '4a', '8a', '12p', '4p', '8p', '11p'];
   static const _rate = 24.0; // Rs per kWh

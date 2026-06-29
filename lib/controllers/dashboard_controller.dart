@@ -146,7 +146,7 @@ class DashboardController extends GetxController {
   }
 
   void goToBills() {
-    selectTab(2);
+    Get.toNamed(AppRoutes.bills);
   }
 
   void goToSettings() {

@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../bindings/dashboard_binding.dart';
 import '../bindings/analytics_binding.dart';
+import '../bindings/bills_binding.dart';
 import '../views/analytics_view.dart';
 import '../views/bills_view.dart';
 import '../views/dashboard_view.dart';
@@ -35,6 +36,7 @@ class AppRoutes {
     GetPage(
       name: bills,
       page: () => const BillsView(),
+      binding: BillsBinding(),
       transition: Transition.fadeIn,
     ),
     GetPage(
