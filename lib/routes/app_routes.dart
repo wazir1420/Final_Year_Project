@@ -1,6 +1,7 @@
 import 'package:finalyearproject/views/splash_view.dart';
 import 'package:get/get.dart';
 
+import '../bindings/splash_binding.dart';
 import '../bindings/dashboard_binding.dart';
 import '../bindings/analytics_binding.dart';
 import '../bindings/bills_binding.dart';
@@ -23,6 +24,7 @@ class AppRoutes {
     GetPage(
       name: splash,
       page: () => const SplashView(),
+      binding: SplashBinding(),
       transition: Transition.fadeIn,
     ),
 
