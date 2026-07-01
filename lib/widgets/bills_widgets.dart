@@ -1,5 +1,6 @@
 import 'package:finalyearproject/models/bills_model.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const kNavy = Color(0xFF1E3A5F);
@@ -13,12 +14,17 @@ const kBlueLite = Color(0xFFDBEAFE);
 const kBlueGhost = Color(0xFFEFF6FF);
 const kGreen = Color(0xFF10B981);
 const kAmber = Color(0xFFD97706);
-const kSurface = Color(0xFFF7F8FA);
-const kCard = Colors.white;
-const kBorder = Color(0xFFE8EAF0);
-const kPrimary = Color(0xFF111111);
-const kSecondary = Color(0xFF666666);
-const kMuted = Color(0xFF999999);
+
+Color get kSurface =>
+    Get.isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF7F8FA);
+Color get kCard => Get.isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+Color get kBorder =>
+    Get.isDarkMode ? const Color(0xFF334155) : const Color(0xFFE8EAF0);
+Color get kPrimary => Get.isDarkMode ? Colors.white : const Color(0xFF111111);
+Color get kSecondary =>
+    Get.isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF666666);
+Color get kMuted =>
+    Get.isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF999999);
 
 // ── Section label ─────────────────────────────────────────────────────────────
 class SectionLabel extends StatelessWidget {
@@ -30,7 +36,7 @@ class SectionLabel extends StatelessWidget {
     padding: const EdgeInsets.only(top: 16, bottom: 8),
     child: Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         color: kMuted,
@@ -210,7 +216,7 @@ class InvoiceCard extends StatelessWidget {
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
             ),
             child: Row(
@@ -218,7 +224,7 @@ class InvoiceCard extends StatelessWidget {
               children: [
                 Text(
                   'WAPDA / K-Electric · $monthLabel',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: kPrimary,
@@ -226,7 +232,7 @@ class InvoiceCard extends StatelessWidget {
                 ),
                 Text(
                   'Est. invoice',
-                  style: const TextStyle(fontSize: 10, color: kMuted),
+                  style: TextStyle(fontSize: 10, color: kMuted),
                 ),
               ],
             ),
@@ -236,14 +242,14 @@ class InvoiceCard extends StatelessWidget {
           // Total row
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: kSurface,
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Estimated total',
                   style: TextStyle(
                     fontSize: 13,
@@ -277,9 +283,9 @@ class _InvoiceRow extends StatelessWidget {
     if (item.isDivider) {
       return Column(
         children: [
-          const Divider(color: kBorder, height: 1, thickness: 0.5),
+          Divider(color: kBorder, height: 1, thickness: 0.5),
           _RowContent(item: item),
-          const Divider(color: kBorder, height: 1, thickness: 0.5),
+          Divider(color: kBorder, height: 1, thickness: 0.5),
         ],
       );
     }
@@ -360,7 +366,7 @@ class DailyCostChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Cost per day',
             style: TextStyle(
               fontSize: 13,
@@ -369,7 +375,7 @@ class DailyCostChart extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          const Text(
+          Text(
             'Rs. per day this month',
             style: TextStyle(fontSize: 11, color: kMuted),
           ),
@@ -418,7 +424,7 @@ class DailyCostChart extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         '${d.day}',
-                        style: const TextStyle(fontSize: 8, color: kMuted),
+                        style: TextStyle(fontSize: 8, color: kMuted),
                       ),
                     ],
                   ),
@@ -429,19 +435,19 @@ class DailyCostChart extends StatelessWidget {
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.only(top: 8),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(top: BorderSide(color: kBorder, width: 0.5)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Avg per day',
                   style: TextStyle(fontSize: 11, color: kMuted),
                 ),
                 Text(
                   'Rs. ${avgCost.toStringAsFixed(0)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: kPrimary,
@@ -483,7 +489,7 @@ class MonthComparisonChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Bill vs previous months',
             style: TextStyle(
               fontSize: 13,
@@ -570,19 +576,19 @@ class MonthComparisonChart extends StatelessWidget {
           }),
           Container(
             padding: const EdgeInsets.only(top: 8),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(top: BorderSide(color: kBorder, width: 0.5)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   '5-month average',
                   style: TextStyle(fontSize: 11, color: kMuted),
                 ),
                 Text(
                   'Rs. ${avgTotal.toStringAsFixed(0)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: kPrimary,

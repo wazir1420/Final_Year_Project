@@ -1,14 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/bills_controller.dart';
+import '../controllers/theme_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/bills_widgets.dart';
+import '../services/route_observer.dart';
 
-class BillsView extends GetView<BillsController> {
+class BillsView extends StatefulWidget {
   const BillsView({super.key});
 
   @override
+  State<BillsView> createState() => _BillsViewState();
+}
+
+class _BillsViewState extends State<BillsView> with RouteAware {
+  final controller = Get.find<BillsController>();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final _ = Get.find<ThemeController>().isDarkRx.value;
     return Scaffold(
       backgroundColor: kSurface,
       body: SafeArea(
@@ -28,14 +53,14 @@ class _Header extends GetView<BillsController> {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-    decoration: const BoxDecoration(
-      color: Colors.white,
+    decoration: BoxDecoration(
+      color: kCard,
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
     ),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
+        Text(
           'Bill',
           style: TextStyle(
             fontSize: 20,
@@ -49,7 +74,7 @@ class _Header extends GetView<BillsController> {
             children: [
               GestureDetector(
                 onTap: controller.prevMonth,
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.all(8),
                   child: Icon(
                     Icons.chevron_left_rounded,
@@ -60,7 +85,7 @@ class _Header extends GetView<BillsController> {
               ),
               Text(
                 controller.selectedMonth.value.label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: kPrimary,
@@ -165,7 +190,7 @@ class _ComparisonChart extends GetView<BillsController> {
 class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
+    decoration: BoxDecoration(
       color: Colors.white,
       border: Border(top: BorderSide(color: kBorder, width: 0.5)),
     ),

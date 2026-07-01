@@ -1,13 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/dashboard_controller.dart';
+import '../controllers/theme_controller.dart';
 import '../widgets/dashboard_widgets.dart';
+import '../services/route_observer.dart';
 
-class DashboardView extends GetView<DashboardController> {
+class DashboardView extends StatefulWidget {
   const DashboardView({super.key});
 
   @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> with RouteAware {
+  final controller = Get.find<DashboardController>();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // another route was popped and this route is now visible again
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // read reactive theme to trigger rebuild on theme changes too
+    final _ = Get.find<ThemeController>().isDarkRx.value;
     return Scaffold(
       backgroundColor: kSurface,
       appBar: PreferredSize(
@@ -32,8 +61,8 @@ class _Header extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-    decoration: const BoxDecoration(
-      color: Colors.white,
+    decoration: BoxDecoration(
+      color: kCard,
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
     ),
     child: Row(
@@ -43,13 +72,13 @@ class _Header extends GetView<DashboardController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Good morning',
                 style: TextStyle(fontSize: 13, color: kMuted),
               ),
               const SizedBox(height: 2),
-              const Text(
-                'Energy Monitor',
+              Text(
+                'Power Insight',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -68,7 +97,7 @@ class _Header extends GetView<DashboardController> {
         Column(
           children: [
             IconButton(
-              icon: const Icon(Icons.refresh_rounded, color: kMuted, size: 20),
+              icon: Icon(Icons.refresh_rounded, color: kMuted, size: 20),
               onPressed: controller.refreshData,
               tooltip: 'Refresh',
             ),
@@ -81,7 +110,7 @@ class _Header extends GetView<DashboardController> {
               ),
               child: const Center(
                 child: Text(
-                  'SM',
+                  'PI',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -277,7 +306,7 @@ class _BillsTab extends StatelessWidget {
             border: Border.all(color: kBorder, width: 0.5),
           ),
           child: Column(
-            children: const [
+            children: [
               ListTile(
                 leading: Icon(Icons.calendar_today_rounded, color: kBlue),
                 title: Text('Due date'),
@@ -320,7 +349,7 @@ class _SettingsTab extends StatelessWidget {
             border: Border.all(color: kBorder, width: 0.5),
           ),
           child: Column(
-            children: const [
+            children: [
               _SettingsTile(
                 icon: Icons.notifications_rounded,
                 title: 'Live updates',
@@ -369,21 +398,18 @@ class _AnalyticsMetricCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: kMuted)),
+          Text(title, style: TextStyle(fontSize: 12, color: kMuted)),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
               color: kPrimary,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 12, color: kSecondary),
-          ),
+          Text(subtitle, style: TextStyle(fontSize: 12, color: kSecondary)),
         ],
       ),
     ),
@@ -410,14 +436,14 @@ class _AnalyticsInfoCard extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
             color: kPrimary,
           ),
         ),
         const SizedBox(height: 10),
-        Text(description, style: const TextStyle(fontSize: 13, color: kMuted)),
+        Text(description, style: TextStyle(fontSize: 13, color: kMuted)),
       ],
     ),
   );
@@ -454,11 +480,8 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) => ListTile(
     leading: Icon(icon, color: kBlue),
     title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-    subtitle: Text(
-      subtitle,
-      style: const TextStyle(fontSize: 13, color: kMuted),
-    ),
-    trailing: const Icon(Icons.chevron_right_rounded, color: kMuted),
+    subtitle: Text(subtitle, style: TextStyle(fontSize: 13, color: kMuted)),
+    trailing: Icon(Icons.chevron_right_rounded, color: kMuted),
   );
 }
 
@@ -481,8 +504,8 @@ class _BottomNav extends GetView<DashboardController> {
   Widget build(BuildContext context) => Obx(() {
     final selected = controller.selectedTab.value;
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: kCard,
         border: Border(top: BorderSide(color: kBorder, width: 0.5)),
       ),
       child: SafeArea(

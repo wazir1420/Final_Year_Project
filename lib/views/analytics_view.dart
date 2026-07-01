@@ -1,14 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/analytics_controller.dart';
+import '../controllers/theme_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/analytics_widgets.dart';
+import '../services/route_observer.dart';
 
-class AnalyticsView extends GetView<AnalyticsController> {
+class AnalyticsView extends StatefulWidget {
   const AnalyticsView({super.key});
 
   @override
+  State<AnalyticsView> createState() => _AnalyticsViewState();
+}
+
+class _AnalyticsViewState extends State<AnalyticsView> with RouteAware {
+  final controller = Get.find<AnalyticsController>();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final _ = Get.find<ThemeController>().isDarkRx.value;
     return Scaffold(
       backgroundColor: kSurface,
       body: SafeArea(
@@ -29,8 +54,8 @@ class AnalyticsView extends GetView<AnalyticsController> {
 class _Header extends GetView<AnalyticsController> {
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      color: Colors.white,
+    decoration: BoxDecoration(
+      color: kCard,
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
     ),
     child: Column(
@@ -41,7 +66,7 @@ class _Header extends GetView<AnalyticsController> {
           child: Row(
             children: [
               Expanded(
-                child: const Text(
+                child: Text(
                   'Analytics',
                   style: TextStyle(
                     fontSize: 20,
@@ -51,7 +76,7 @@ class _Header extends GetView<AnalyticsController> {
                 ),
               ),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: kMuted,
                   size: 18,
@@ -198,7 +223,7 @@ class _CostChart extends GetView<AnalyticsController> {
 class _BottomNav extends GetView<AnalyticsController> {
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
+    decoration: BoxDecoration(
       color: Colors.white,
       border: Border(top: BorderSide(color: kBorder, width: 0.5)),
     ),

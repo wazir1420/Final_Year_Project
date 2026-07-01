@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../controllers/settings_controller.dart';
@@ -9,11 +10,16 @@ class SettingsView extends GetView<SettingsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6F8),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            CupertinoIcons.back,
+            color: Theme.of(context).iconTheme.color,
+          ),
+          onPressed: () => Get.back(),
+        ),
         title: const Text('Settings'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: ListView(
@@ -43,7 +49,7 @@ class SettingsView extends GetView<SettingsController> {
 
   Widget _card({required List<Widget> children}) => Container(
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(Get.context!).cardColor,
       borderRadius: BorderRadius.circular(12),
     ),
     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -66,7 +72,7 @@ class SettingsView extends GetView<SettingsController> {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(Get.context!).cardColor,
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(16),
@@ -112,29 +118,38 @@ class SettingsView extends GetView<SettingsController> {
     return _card(
       children: [
         Obx(
-          () => SwitchListTile(
+          () => ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Bill threshold alert'),
-            value: controller.billThresholdAlert.value,
-            onChanged: controller.toggleBillThresholdAlert,
+            trailing: Switch(
+              value: controller.billThresholdAlert.value,
+              onChanged: controller.toggleBillThresholdAlert,
+              activeThumbColor: Theme.of(Get.context!).colorScheme.primary,
+            ),
           ),
         ),
         _divider(),
         Obx(
-          () => SwitchListTile(
+          () => ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('High power alert'),
-            value: controller.highPowerAlert.value,
-            onChanged: controller.toggleHighPowerAlert,
+            trailing: Switch(
+              value: controller.highPowerAlert.value,
+              onChanged: controller.toggleHighPowerAlert,
+              activeThumbColor: Theme.of(Get.context!).colorScheme.primary,
+            ),
           ),
         ),
         _divider(),
         Obx(
-          () => SwitchListTile(
+          () => ListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Daily summary'),
-            value: controller.dailySummary.value,
-            onChanged: controller.toggleDailySummary,
+            trailing: Switch(
+              value: controller.dailySummary.value,
+              onChanged: controller.toggleDailySummary,
+              activeThumbColor: Theme.of(Get.context!).colorScheme.primary,
+            ),
           ),
         ),
       ],
@@ -196,11 +211,20 @@ class SettingsView extends GetView<SettingsController> {
     return _card(
       children: [
         Obx(
-          () => SwitchListTile(
+          () => ListTile(
             contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              controller.isDarkMode.value ? Icons.dark_mode : Icons.light_mode,
+              color: controller.isDarkMode.value
+                  ? Theme.of(Get.context!).colorScheme.primary
+                  : Colors.grey,
+            ),
             title: const Text('Dark mode'),
-            value: controller.isDarkMode.value,
-            onChanged: controller.toggleDarkMode,
+            trailing: Switch(
+              value: controller.isDarkMode.value,
+              onChanged: controller.toggleDarkMode,
+              activeThumbColor: Theme.of(Get.context!).colorScheme.primary,
+            ),
           ),
         ),
         _divider(),

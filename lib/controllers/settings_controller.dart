@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'theme_controller.dart';
 
 class SettingsController extends GetxController {
   // Account summary — swap these for your AuthController / ProfileController
@@ -21,6 +22,16 @@ class SettingsController extends GetxController {
   final language = 'English'.obs;
   final currency = 'PKR'.obs;
 
+  @override
+  void onInit() {
+    super.onInit();
+    // initialize from global ThemeController so state stays in sync
+    final themeCtrl = Get.isRegistered<ThemeController>()
+        ? Get.find<ThemeController>()
+        : Get.put(ThemeController());
+    isDarkMode.value = themeCtrl.isDark;
+  }
+
   void toggleBillThresholdAlert(bool value) => billThresholdAlert.value = value;
 
   void toggleHighPowerAlert(bool value) => highPowerAlert.value = value;
@@ -29,7 +40,11 @@ class SettingsController extends GetxController {
 
   void toggleDarkMode(bool value) {
     isDarkMode.value = value;
-    Get.changeThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+    // route theme changes through the global ThemeController (create if missing)
+    final themeCtrl = Get.isRegistered<ThemeController>()
+        ? Get.find<ThemeController>()
+        : Get.put(ThemeController());
+    themeCtrl.isDark = value;
   }
 
   void goToProfile() => Get.toNamed('/profile');

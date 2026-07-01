@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/meter_data_model.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -14,12 +15,17 @@ const kGreenDot = Color(0xFF10B981);
 const kIndigoTint = Color(0xFFEEF2FF);
 const kIndigo = Color(0xFF3730A3);
 const kIndigoMid = Color(0xFF6366F1);
-const kSurface = Color(0xFFF7F8FA);
-const kCard = Colors.white;
-const kBorder = Color(0xFFE8EAF0);
-const kPrimary = Color(0xFF111111);
-const kSecondary = Color(0xFF666666);
-const kMuted = Color(0xFF999999);
+
+Color get kSurface =>
+    Get.isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF7F8FA);
+Color get kCard => Get.isDarkMode ? const Color(0xFF1E293B) : Colors.white;
+Color get kBorder =>
+    Get.isDarkMode ? const Color(0xFF334155) : const Color(0xFFE8EAF0);
+Color get kPrimary => Get.isDarkMode ? Colors.white : const Color(0xFF111111);
+Color get kSecondary =>
+    Get.isDarkMode ? const Color(0xFFCBD5E1) : const Color(0xFF666666);
+Color get kMuted =>
+    Get.isDarkMode ? const Color(0xFF94A3B8) : const Color(0xFF999999);
 
 // ── Section label ─────────────────────────────────────────────────────────────
 class SectionLabel extends StatelessWidget {
@@ -31,7 +37,7 @@ class SectionLabel extends StatelessWidget {
     padding: const EdgeInsets.only(top: 18, bottom: 8),
     child: Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         color: kMuted,
@@ -244,14 +250,14 @@ class PhaseParamCard extends StatelessWidget {
           child: Icon(icon, color: iconColor, size: 16),
         ),
         const SizedBox(height: 10),
-        Text(label, style: const TextStyle(fontSize: 11, color: kMuted)),
+        Text(label, style: TextStyle(fontSize: 11, color: kMuted)),
         const SizedBox(height: 2),
         RichText(
           text: TextSpan(
             children: [
               TextSpan(
                 text: value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: kPrimary,
@@ -259,7 +265,7 @@ class PhaseParamCard extends StatelessWidget {
               ),
               TextSpan(
                 text: ' $unit',
-                style: const TextStyle(fontSize: 11, color: kMuted),
+                style: TextStyle(fontSize: 11, color: kMuted),
               ),
             ],
           ),
@@ -293,11 +299,11 @@ class _PhaseChip extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(phase, style: const TextStyle(fontSize: 9, color: kMuted)),
+          Text(phase, style: TextStyle(fontSize: 9, color: kMuted)),
           const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: kPrimary,
@@ -318,7 +324,7 @@ class DailyBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (data.isEmpty) {
       return _shell(
-        child: const Center(
+        child: Center(
           child: Text(
             'No data yet',
             style: TextStyle(color: kMuted, fontSize: 13),
@@ -338,7 +344,7 @@ class DailyBarChart extends StatelessWidget {
         children: [
           Text(
             'Daily usage — ${_monthName(DateTime.now().month)} ${DateTime.now().year}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: kPrimary,
@@ -471,7 +477,7 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-    decoration: const BoxDecoration(
+    decoration: BoxDecoration(
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
     ),
     child: Row(

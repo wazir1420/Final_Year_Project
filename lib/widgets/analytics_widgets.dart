@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/analytics_model.dart';
-import 'dashboard_widgets.dart' show kSurface, kBorder, kPrimary, kMuted, kBlue;
-export 'dashboard_widgets.dart' show kSurface, kBorder, kPrimary, kMuted, kBlue;
+import 'dashboard_widgets.dart'
+    show kSurface, kBorder, kCard, kPrimary, kMuted, kBlue;
+export 'dashboard_widgets.dart'
+    show kSurface, kBorder, kCard, kPrimary, kMuted, kBlue;
 
 class SectionLabel extends StatelessWidget {
   final String text;
@@ -12,7 +14,7 @@ class SectionLabel extends StatelessWidget {
     padding: const EdgeInsets.only(top: 18, bottom: 8),
     child: Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         color: kMuted,
@@ -109,7 +111,7 @@ class KpiCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: kCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: kBorder, width: 0.5),
       ),
@@ -117,11 +119,11 @@ class KpiCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: kMuted)),
+          Text(label, style: TextStyle(fontSize: 12, color: kMuted)),
           const SizedBox(height: 6),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
               color: kPrimary,
@@ -159,7 +161,7 @@ class ComparisonBarChart extends StatelessWidget {
         children: [
           Text(
             currentLabel,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: kPrimary,
@@ -204,7 +206,7 @@ class ComparisonBarChart extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           entry.day,
-                          style: const TextStyle(fontSize: 10, color: kMuted),
+                          style: TextStyle(fontSize: 10, color: kMuted),
                         ),
                       ],
                     ),
@@ -252,7 +254,7 @@ class PowerTrendChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Power trend',
                 style: TextStyle(
                   fontSize: 13,
@@ -260,10 +262,7 @@ class PowerTrendChart extends StatelessWidget {
                   color: kPrimary,
                 ),
               ),
-              Text(
-                peakLabel,
-                style: const TextStyle(fontSize: 11, color: kMuted),
-              ),
+              Text(peakLabel, style: TextStyle(fontSize: 11, color: kMuted)),
             ],
           ),
           const SizedBox(height: 16),
@@ -277,7 +276,7 @@ class PowerTrendChart extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text('0h', style: TextStyle(fontSize: 10, color: kMuted)),
               Text('12h', style: TextStyle(fontSize: 10, color: kMuted)),
               Text('24h', style: TextStyle(fontSize: 10, color: kMuted)),
@@ -313,7 +312,7 @@ class PeakHoursHeatmap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             'Peak hours',
             style: TextStyle(
               fontSize: 13,
@@ -338,10 +337,7 @@ class PeakHoursHeatmap extends StatelessWidget {
                           child: Center(
                             child: Text(
                               day,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: kMuted,
-                              ),
+                              style: TextStyle(fontSize: 10, color: kMuted),
                             ),
                           ),
                         ),
@@ -359,7 +355,7 @@ class PeakHoursHeatmap extends StatelessWidget {
                           width: 36,
                           child: Text(
                             '$hour:00',
-                            style: const TextStyle(fontSize: 10, color: kMuted),
+                            style: TextStyle(fontSize: 10, color: kMuted),
                           ),
                         ),
                         ...days.map((day) {
@@ -412,7 +408,7 @@ class CostBarChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Cost',
                 style: TextStyle(
                   fontSize: 13,
@@ -422,7 +418,7 @@ class CostBarChart extends StatelessWidget {
               ),
               Text(
                 'Total: Rs. ${totalCost.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 11, color: kMuted),
+                style: TextStyle(fontSize: 11, color: kMuted),
               ),
             ],
           ),
@@ -452,7 +448,7 @@ class CostBarChart extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           entry.day,
-                          style: const TextStyle(fontSize: 10, color: kMuted),
+                          style: TextStyle(fontSize: 10, color: kMuted),
                         ),
                       ],
                     ),
@@ -471,18 +467,18 @@ Widget _emptyShell(String text) => Container(
   width: double.infinity,
   padding: const EdgeInsets.all(20),
   decoration: BoxDecoration(
-    color: Colors.white,
+    color: kCard,
     borderRadius: BorderRadius.circular(16),
     border: Border.all(color: kBorder, width: 0.5),
   ),
-  child: Text(text, style: const TextStyle(color: kMuted, fontSize: 13)),
+  child: Text(text, style: TextStyle(color: kMuted, fontSize: 13)),
 );
 
 Widget _chartShell({required Widget child}) => Container(
   width: double.infinity,
   padding: const EdgeInsets.all(16),
   decoration: BoxDecoration(
-    color: Colors.white,
+    color: kCard,
     borderRadius: BorderRadius.circular(16),
     border: Border.all(color: kBorder, width: 0.5),
   ),
@@ -500,7 +496,7 @@ Widget _legendDot(Color color, String label) => Row(
       ),
     ),
     const SizedBox(width: 6),
-    Text(label, style: const TextStyle(fontSize: 10, color: kMuted)),
+    Text(label, style: TextStyle(fontSize: 10, color: kMuted)),
   ],
 );
 
