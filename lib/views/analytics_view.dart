@@ -224,7 +224,7 @@ class _BottomNav extends GetView<AnalyticsController> {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: kCard,
       border: Border(top: BorderSide(color: kBorder, width: 0.5)),
     ),
     child: SafeArea(
