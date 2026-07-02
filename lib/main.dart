@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
     final themeCtrl = Get.find<ThemeController>();
     return Obx(
       () => GetMaterialApp(
-        debugShowCheckedModeBanner: false,
+        debugShowCheckedModeBanner: True,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: themeCtrl.isDarkRx.value ? ThemeMode.dark : ThemeMode.light,
