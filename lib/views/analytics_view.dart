@@ -55,6 +55,7 @@ class _Header extends GetView<AnalyticsController> {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
+      color: kCard,
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
     ),
     child: Column(
