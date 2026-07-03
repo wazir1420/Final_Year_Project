@@ -52,7 +52,7 @@ class _BillsViewState extends State<BillsView> with RouteAware {
 class _Header extends GetView<BillsController> {
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+    padding: const EdgeInsets.fromLTRB(20, 14, 16, 1),
     decoration: BoxDecoration(
       color: kCard,
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
