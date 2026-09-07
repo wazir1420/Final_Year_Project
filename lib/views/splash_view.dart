@@ -332,6 +332,61 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   ];
 }
 
+// ── Corner accent ─────────────────────────────────────────────────────────────
+class _Corner extends StatelessWidget {
+  final double? top, left, right, bottom;
+  final Border border;
+  const _Corner({
+    this.top,
+    this.left,
+    this.right,
+    this.bottom,
+    required this.border,
+  });
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    top: top,
+    left: left,
+    right: right,
+    bottom: bottom,
+    child: Opacity(
+      opacity: 0.2,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(border: border),
+      ),
+    ),
+  );
+}
+
+// ── Background grid ───────────────────────────────────────────────────────────
+class _GridBackground extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => CustomPaint(painter: _GridPainter());
+}
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color.fromRGBO(30, 58, 95, 0.35)
+      ..strokeWidth = 0.5;
+
+    const step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter oldDelegate) => false;
+}
+
 // ── Brand text widget ─────────────────────────────────────────────────────────
 class _BrandText extends StatelessWidget {
   @override
@@ -455,59 +510,4 @@ class _LoaderBar extends StatelessWidget {
       ],
     ),
   );
-}
-
-// ── Corner accent ─────────────────────────────────────────────────────────────
-class _Corner extends StatelessWidget {
-  final double? top, left, right, bottom;
-  final Border border;
-  const _Corner({
-    this.top,
-    this.left,
-    this.right,
-    this.bottom,
-    required this.border,
-  });
-
-  @override
-  Widget build(BuildContext context) => Positioned(
-    top: top,
-    left: left,
-    right: right,
-    bottom: bottom,
-    child: Opacity(
-      opacity: 0.2,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(border: border),
-      ),
-    ),
-  );
-}
-
-// ── Background grid ───────────────────────────────────────────────────────────
-class _GridBackground extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => CustomPaint(painter: _GridPainter());
-}
-
-class _GridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color.fromRGBO(30, 58, 95, 0.35)
-      ..strokeWidth = 0.5;
-
-    const step = 40.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_GridPainter oldDelegate) => false;
 }

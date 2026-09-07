@@ -10,6 +10,13 @@ import '../models/meter_data_model.dart';
 class DummyDataService {
   final _rng = Random();
 
+  /// Number of phases currently wired to the meter (1, 2, or 3).
+  /// Set to 1 while testing with only L1 connected on the CHINT DTSU666.
+  /// Bump to 3 once the full industrial three-phase connection is live.
+  final int connectedPhases;
+
+  DummyDataService({this.connectedPhases = 1});
+
   // Base values that mimic a real three-phase load
   static const _baseV = 238.0;
   static const _baseI = [6.4, 7.1, 6.3]; // L1, L2, L3 amps
@@ -29,16 +36,21 @@ class DummyDataService {
         base + (_rng.nextDouble() * range * 2 - range);
 
     final v1 = jitter(_baseV, 1.5);
-    final v2 = jitter(_baseV, 1.5);
-    final v3 = jitter(_baseV, 1.5);
+    final v2 = connectedPhases >= 2 ? jitter(_baseV, 1.5) : 0.0;
+    final v3 = connectedPhases >= 3 ? jitter(_baseV, 1.5) : 0.0;
     final i1 = jitter(_baseI[0], 0.3);
-    final i2 = jitter(_baseI[1], 0.3);
-    final i3 = jitter(_baseI[2], 0.3);
+    final i2 = connectedPhases >= 2 ? jitter(_baseI[1], 0.3) : 0.0;
+    final i3 = connectedPhases >= 3 ? jitter(_baseI[2], 0.3) : 0.0;
     final pf = jitter(_basePf, 0.01).clamp(0.85, 1.0);
     final hz = jitter(_baseHz, 0.02);
 
-    // P = V * I * PF  (per phase, then sum)
-    final activePower = ((v1 * i1 + v2 * i2 + v3 * i3) * pf) / 1000; // → kW
+    // P = V * I * PF, summed only over the phases actually wired in.
+    // While testing on L1 only, L2/L3 contribute nothing — matching what
+    // a real meter would report with those lines unconnected.
+    double power = v1 * i1;
+    if (connectedPhases >= 2) power += v2 * i2;
+    if (connectedPhases >= 3) power += v3 * i3;
+    final activePower = (power * pf) / 1000; // → kW
 
     return MeterData(
       activePower: activePower,
@@ -52,6 +64,7 @@ class DummyDataService {
       frequency: hz,
       totalEnergy: 187.3, // cumulative kWh — static for dummy
       timestamp: DateTime.now(),
+      connectedPhases: connectedPhases,
     );
   }
 

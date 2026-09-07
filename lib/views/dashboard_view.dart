@@ -172,6 +172,8 @@ class _PowerCard extends GetView<DashboardController> {
       totalCurrent: m.totalCurrent,
       powerFactor: m.powerFactor,
       frequency: m.frequency,
+      meterName: controller.connectedMeterName,
+      phaseStatusLabel: controller.phaseStatusLabel,
     );
   });
 }
@@ -195,6 +197,7 @@ class _PhaseGrid extends GetView<DashboardController> {
             l2: m.voltageL2,
             l3: m.voltageL3,
             fmt: (v) => v.toStringAsFixed(0),
+            connectedPhases: m.connectedPhases,
           ),
         ),
         const SizedBox(width: 10),
@@ -210,6 +213,7 @@ class _PhaseGrid extends GetView<DashboardController> {
             l2: m.currentL2,
             l3: m.currentL3,
             fmt: (v) => v.toStringAsFixed(1),
+            connectedPhases: m.connectedPhases,
           ),
         ),
       ],

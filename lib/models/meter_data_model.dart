@@ -11,6 +11,11 @@ class MeterData {
   final double totalEnergy; // kWh (cumulative)
   final DateTime timestamp;
 
+  /// How many phases are actually wired to the meter right now (1, 2, or 3).
+  /// While testing on a single phase, this stays at 1 so the UI doesn't
+  /// average/sum in two unconnected lines that would otherwise read 0.
+  final int connectedPhases;
+
   const MeterData({
     required this.activePower,
     required this.voltageL1,
@@ -23,6 +28,7 @@ class MeterData {
     required this.frequency,
     required this.totalEnergy,
     required this.timestamp,
+    this.connectedPhases = 3,
   });
 
   factory MeterData.empty() => MeterData(
@@ -37,11 +43,39 @@ class MeterData {
     frequency: 0,
     totalEnergy: 0,
     timestamp: DateTime.now(),
+    connectedPhases: 3,
   );
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  double get avgVoltage => (voltageL1 + voltageL2 + voltageL3) / 3;
-  double get totalCurrent => currentL1 + currentL2 + currentL3;
+  /// Average voltage across only the phases currently connected.
+  double get avgVoltage {
+    final vals = [
+      voltageL1,
+      voltageL2,
+      voltageL3,
+    ].take(connectedPhases).toList();
+    if (vals.isEmpty) return 0;
+    return vals.reduce((a, b) => a + b) / vals.length;
+  }
+
+  /// Sum of current across only the phases currently connected.
+  double get totalCurrent {
+    final vals = [
+      currentL1,
+      currentL2,
+      currentL3,
+    ].take(connectedPhases).toList();
+    if (vals.isEmpty) return 0;
+    return vals.reduce((a, b) => a + b);
+  }
+
+  /// Whether a given phase (1, 2, or 3) is currently wired up.
+  bool isPhaseConnected(int phase) => phase <= connectedPhases;
+
+  /// Short label for display, e.g. "Testing 1 of 3 phases" or "Three-phase".
+  String get phaseStatusLabel => connectedPhases >= 3
+      ? 'Three-phase'
+      : 'Testing $connectedPhases of 3 phases';
 
   // ── Firebase factory (uncomment when ready) ────────────────────────────────
   // factory MeterData.fromFirestore(Map<String, dynamic> m) => MeterData(
@@ -56,6 +90,7 @@ class MeterData {
   //   frequency   : (m['frequency']         as num).toDouble(),
   //   totalEnergy : (m['total_energy_kwh']  as num).toDouble(),
   //   timestamp   : (m['timestamp'] as Timestamp).toDate(),
+  //   connectedPhases: (m['connected_phases'] as num?)?.toInt() ?? 3,
   // );
 }
 

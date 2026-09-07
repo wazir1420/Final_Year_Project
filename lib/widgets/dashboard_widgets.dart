@@ -118,6 +118,8 @@ class PowerHeroCard extends StatelessWidget {
   final double totalCurrent;
   final double powerFactor;
   final double frequency;
+  final String meterName;
+  final String phaseStatusLabel;
 
   const PowerHeroCard({
     super.key,
@@ -126,6 +128,8 @@ class PowerHeroCard extends StatelessWidget {
     required this.totalCurrent,
     required this.powerFactor,
     required this.frequency,
+    required this.meterName,
+    required this.phaseStatusLabel,
   });
 
   @override
@@ -162,9 +166,9 @@ class PowerHeroCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'CHINT DTSU666 · Three-phase',
-          style: TextStyle(fontSize: 11, color: Color(0x7FFFFFFF)),
+        Text(
+          '$meterName · $phaseStatusLabel',
+          style: const TextStyle(fontSize: 11, color: Color(0x7FFFFFFF)),
         ),
         const SizedBox(height: 14),
         const Divider(color: Color(0x1FFFFFFF), height: 1),
@@ -214,6 +218,7 @@ class PhaseParamCard extends StatelessWidget {
   final String label, value, unit;
   final double l1, l2, l3;
   final String Function(double) fmt;
+  final int connectedPhases;
 
   const PhaseParamCard({
     super.key,
@@ -227,6 +232,7 @@ class PhaseParamCard extends StatelessWidget {
     required this.l2,
     required this.l3,
     required this.fmt,
+    this.connectedPhases = 3,
   });
 
   @override
@@ -273,11 +279,11 @@ class PhaseParamCard extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            _PhaseChip('L1', fmt(l1)),
+            _PhaseChip('L1', fmt(l1), connected: connectedPhases >= 1),
             const SizedBox(width: 4),
-            _PhaseChip('L2', fmt(l2)),
+            _PhaseChip('L2', fmt(l2), connected: connectedPhases >= 2),
             const SizedBox(width: 4),
-            _PhaseChip('L3', fmt(l3)),
+            _PhaseChip('L3', fmt(l3), connected: connectedPhases >= 3),
           ],
         ),
       ],
@@ -287,26 +293,49 @@ class PhaseParamCard extends StatelessWidget {
 
 class _PhaseChip extends StatelessWidget {
   final String phase, value;
-  const _PhaseChip(this.phase, this.value);
+  final bool connected;
+  const _PhaseChip(this.phase, this.value, {this.connected = true});
 
   @override
   Widget build(BuildContext context) => Expanded(
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F6FB),
+        color: connected
+            ? (Get.isDarkMode
+                  ? const Color(0xFF334155)
+                  : const Color(0xFFF4F6FB))
+            : (Get.isDarkMode
+                  ? const Color(0xFF172033)
+                  : const Color(0xFFFAFAFA)),
         borderRadius: BorderRadius.circular(8),
+        border: connected
+            ? null
+            : Border.all(
+                color: Get.isDarkMode
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE0E0E0),
+                width: 0.5,
+                style: BorderStyle.solid,
+              ),
       ),
       child: Column(
         children: [
-          Text(phase, style: TextStyle(fontSize: 9, color: kMuted)),
+          Text(
+            phase,
+            style: TextStyle(
+              fontSize: 9,
+              color: connected ? kMuted : const Color(0xFFC0C0C0),
+            ),
+          ),
           const SizedBox(height: 2),
           Text(
-            value,
+            // Not wired yet — show a dash rather than a misleading 0
+            connected ? value : '—',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: kPrimary,
+              color: connected ? kPrimary : const Color(0xFFC0C0C0),
             ),
           ),
         ],

@@ -5,9 +5,13 @@ import '../models/meter_data_model.dart';
 import '../models/bill_model.dart';
 import '../routes/app_routes.dart';
 import '../services/dummy_data_service.dart';
+import 'settings_controller.dart';
 
 class DashboardController extends GetxController {
-  final DummyDataService _service = DummyDataService();
+  // Testing with only L1 of the CHINT DTSU666 wired up for now.
+  // Change to 3 once the full industrial three-phase connection is live —
+  // nothing else in the controller or views needs to change.
+  final DummyDataService _service = DummyDataService(connectedPhases: 1);
 
   // Observable variables
   final RxBool isLoading = true.obs;
@@ -114,6 +118,19 @@ class DashboardController extends GetxController {
         ? ((projectedBill - current) / current) * 100
         : 0;
   }
+
+  String get connectedMeterName {
+    if (Get.isRegistered<SettingsController>()) {
+      return Get.find<SettingsController>().meterModel.value;
+    }
+
+    final fallback = SettingsController();
+    Get.put<SettingsController>(fallback);
+    return fallback.meterModel.value;
+  }
+
+  /// "Testing 1 of 3 phases" while on partial wiring, "Three-phase" once full.
+  String get phaseStatusLabel => meterData.value.phaseStatusLabel;
 
   String get mlChangeLabel {
     final sign = mlChange.value >= 0 ? "+" : "";
