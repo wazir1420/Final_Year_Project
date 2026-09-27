@@ -6,6 +6,7 @@ import '../models/bill_model.dart';
 import '../routes/app_routes.dart';
 import '../services/firebase_meter_service.dart';
 import '../services/firebase_history_service.dart';
+import '../services/firebase_meters_list_service.dart';
 
 class DashboardController extends GetxController {
   final String meterId;
@@ -48,6 +49,7 @@ class DashboardController extends GetxController {
 
   final RxDouble mlChange = 0.0.obs;
   final RxInt selectedTab = 0.obs;
+  final RxString _registeredMeterName = ''.obs;
 
   // Tariff
   static const double ratePerKwh = 24.0;
@@ -60,8 +62,19 @@ class DashboardController extends GetxController {
   void onInit() {
     super.onInit();
 
+    if (meterName.isEmpty) _loadRegisteredMeterName();
     loadMonthlyData();
     startMeterStream();
+  }
+
+  Future<void> _loadRegisteredMeterName() async {
+    final meters = await FirebaseMetersListService().fetchOnce();
+    for (final meter in meters) {
+      if (meter.id == meterId && meter.name.isNotEmpty) {
+        _registeredMeterName.value = meter.name;
+        return;
+      }
+    }
   }
 
   @override
@@ -160,6 +173,9 @@ class DashboardController extends GetxController {
     final liveName = meterData.value.meterName;
     if (liveName.isNotEmpty) return liveName;
     if (meterName.isNotEmpty) return meterName;
+    if (_registeredMeterName.value.isNotEmpty) {
+      return _registeredMeterName.value;
+    }
     return meterId;
   }
 

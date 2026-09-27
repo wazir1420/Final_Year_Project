@@ -47,6 +47,12 @@ class AppRoutes {
         final args = (Get.arguments as Map?) ?? {};
         final meterId = args['meterId']?.toString() ?? 'meter1';
         final meterName = args['meterName']?.toString() ?? '';
+
+        // Purana controller (kisi aur meter ka ya khaali naam wala) zinda ho
+        // to pehle hata dein, warna Get.put naya wala ignore kar deta hai.
+        if (Get.isRegistered<DashboardController>()) {
+          Get.delete<DashboardController>(force: true);
+        }
         Get.put(DashboardController(meterId: meterId, meterName: meterName));
       }),
       transition: Transition.fadeIn,
