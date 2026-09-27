@@ -73,9 +73,8 @@ class MeterData {
   bool isPhaseConnected(int phase) => phase <= connectedPhases;
 
   /// Short label for display, e.g. "Testing 1 of 3 phases" or "Three-phase".
-  String get phaseStatusLabel => connectedPhases >= 3
-      ? 'Three-phase'
-      : 'Testing $connectedPhases of 3 phases';
+  String get phaseStatusLabel =>
+      connectedPhases >= 3 ? 'Three-phase' : ' Main line connected';
 
   // ── Firebase factory (uncomment when ready) ────────────────────────────────
   // factory MeterData.fromFirestore(Map<String, dynamic> m) => MeterData(

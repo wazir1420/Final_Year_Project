@@ -49,7 +49,9 @@ class SectionLabel extends StatelessWidget {
 
 // ── Animated live badge ───────────────────────────────────────────────────────
 class LiveBadge extends StatefulWidget {
-  const LiveBadge({super.key});
+  final bool isOnline;
+  const LiveBadge({super.key, required this.isOnline});
+
   @override
   State<LiveBadge> createState() => _LiveBadgeState();
 }
@@ -76,39 +78,59 @@ class _LiveBadgeState extends State<LiveBadge>
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: kGreenTint,
-      border: Border.all(color: const Color(0xFF6EE7B7), width: 0.5),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FadeTransition(
-          opacity: _fade,
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: kGreenDot,
-              shape: BoxShape.circle,
+  Widget build(BuildContext context) {
+    // Online: hara pulsing badge (jaisa pehle tha)
+    // Offline: laal, bina pulse ke, alag text
+    final Color tint = widget.isOnline ? kGreenTint : const Color(0xFFFCEBEB);
+    final Color dot = widget.isOnline ? kGreenDot : const Color(0xFF991F1F);
+    final Color textColor = widget.isOnline ? kGreen : const Color(0xFF991F1F);
+    final Color borderColor = widget.isOnline
+        ? const Color(0xFF6EE7B7)
+        : const Color(0xFFF3B4B4);
+    final String label = widget.isOnline
+        ? 'Live · updating every 2s'
+        : 'Meter offline';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: tint,
+        border: Border.all(color: borderColor, width: 0.5),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          widget.isOnline
+              ? FadeTransition(
+                  opacity: _fade,
+                  child: Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: dot,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                )
+              : Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+                ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: textColor,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ),
-        const SizedBox(width: 5),
-        const Text(
-          'Live · updating every 2s',
-          style: TextStyle(
-            fontSize: 11,
-            color: kGreen,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
 
 // ── Power hero card ───────────────────────────────────────────────────────────

@@ -57,6 +57,7 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
+// ── Header ────────────────────────────────────────────────────────────────────
 class _Header extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) => Container(
@@ -86,11 +87,7 @@ class _Header extends GetView<DashboardController> {
                 ),
               ),
               const SizedBox(height: 8),
-              Obx(
-                () => controller.isLive.value
-                    ? const LiveBadge()
-                    : const SizedBox.shrink(),
-              ),
+              Obx(() => LiveBadge(isOnline: controller.isMeterOnline.value)),
             ],
           ),
         ),
