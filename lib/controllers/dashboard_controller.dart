@@ -4,18 +4,32 @@ import 'package:get/get.dart';
 import '../models/meter_data_model.dart';
 import '../models/bill_model.dart';
 import '../routes/app_routes.dart';
+import '../services/firebase_meter_service.dart';
 import '../services/dummy_data_service.dart';
 import 'settings_controller.dart';
 
 class DashboardController extends GetxController {
-  // Testing with only L1 of the CHINT DTSU666 wired up for now.
-  // Change to 3 once the full industrial three-phase connection is live —
-  // nothing else in the controller or views needs to change.
-  final DummyDataService _service = DummyDataService(connectedPhases: 1);
+  // Ab live meter reading Firebase se aa rahi hai (ESP32 wahan bhejta hai).
+  // Testing abhi 1 phase (L1) par ho rahi hai — poore 3-phase setup ke baad
+  // connectedPhases: 3 kar dein, baaki kuch change nahi karna hoga.
+  final FirebaseMeterService _service = FirebaseMeterService(
+    connectedPhases: 1,
+  );
+
+  // Monthly/daily history abhi Firebase mein save nahi ho rahi (agla step),
+  // isliye chart data filhal simulate hi hota hai — live readings real hain.
+  final DummyDataService _historyService = DummyDataService();
 
   // Observable variables
   final RxBool isLoading = true.obs;
   final RxBool isLive = false.obs;
+
+  // Agar Firebase se 10 second tak koi naya data na aaye, ye false ho jata hai
+  // aur UI "Meter Offline" dikhata hai — purani values ko live samajh kar
+  // dikhate rehne se bachata hai.
+  final RxBool isMeterOnline = true.obs;
+  static const int _offlineThresholdSeconds = 10;
+  Timer? _livenessTimer;
 
   final Rx<MeterData> meterData = MeterData.empty().obs;
 
@@ -48,12 +62,13 @@ class DashboardController extends GetxController {
   @override
   void onClose() {
     _meterSub?.cancel();
+    _livenessTimer?.cancel();
 
     super.onClose();
   }
 
   void loadMonthlyData() {
-    final monthly = _service.getMonthlyData();
+    final monthly = _historyService.getMonthlyData();
 
     monthlyKwh.value = monthly.totalKwh;
 
@@ -64,8 +79,8 @@ class DashboardController extends GetxController {
     runMlProjection();
   }
 
-  void startMeterStream() {
-    meterData.value = _service.generateReading();
+  void startMeterStream() async {
+    meterData.value = await _service.fetchOnce();
 
     isLoading.value = false;
 
@@ -73,6 +88,17 @@ class DashboardController extends GetxController {
 
     _meterSub = _service.meterStream.listen((reading) {
       meterData.value = reading;
+    });
+
+    // Har 2 second check karta hai ke aakhri reading kitni purani hai —
+    // meterData khud update na bhi ho (meter band ho jaye), ye timer
+    // phir bhi chalta rehta hai aur UI ko "Offline" dikha deta hai.
+    _livenessTimer?.cancel();
+    _livenessTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      final age = DateTime.now()
+          .difference(meterData.value.timestamp)
+          .inSeconds;
+      isMeterOnline.value = age < _offlineThresholdSeconds;
     });
   }
 
@@ -129,8 +155,11 @@ class DashboardController extends GetxController {
     return fallback.meterModel.value;
   }
 
-  /// "Testing 1 of 3 phases" while on partial wiring, "Three-phase" once full.
-  String get phaseStatusLabel => meterData.value.phaseStatusLabel;
+  /// "Meter Offline" agar data purana ho, warna "Testing 1 of 3 phases" waghera
+  String get phaseStatusLabel {
+    if (!isMeterOnline.value) return 'Meter Offline';
+    return meterData.value.phaseStatusLabel;
+  }
 
   String get mlChangeLabel {
     final sign = mlChange.value >= 0 ? "+" : "";
