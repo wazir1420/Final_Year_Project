@@ -33,7 +33,7 @@ class DashboardController extends GetxController {
   // aur UI "Meter Offline" dikhata hai — purani values ko live samajh kar
   // dikhate rehne se bachata hai.
   final RxBool isMeterOnline = true.obs;
-  static const int _offlineThresholdSeconds = 10;
+  static const int _offlineThresholdSeconds = 20;
   Timer? _livenessTimer;
 
   final Rx<MeterData> meterData = MeterData.empty().obs;
@@ -85,7 +85,10 @@ class DashboardController extends GetxController {
   }
 
   void startMeterStream() async {
-    meterData.value = await _service.fetchOnce();
+    // Pehli dafa load hote waqt agar fetch fail ho jaye, khaali state dikhayein
+    // (koi purani value hai hi nahi is se pehle) — baad ke updates mein
+    // service khud null par purani value ko chhoo nahi degi.
+    meterData.value = await _service.fetchOnce() ?? MeterData.empty();
 
     isLoading.value = false;
 

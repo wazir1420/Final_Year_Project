@@ -30,8 +30,12 @@ class FirebaseMeterService {
   /// ESP32 jahan latest reading likhta hai: /meters/{meterId}/latest
   String get _latestUrl => '$_dbUrl/meters/$meterId/latest.json';
 
-  /// Ek dafa turant reading le kar aata hai (app shuru hote hi use hota hai)
-  Future<MeterData> fetchOnce() async {
+  /// Ek dafa turant reading le kar aata hai (app shuru hote hi use hota hai).
+  /// Agar fetch fail ho jaye (chhota network glitch, timeout waghera), 'null'
+  /// wapas karta hai — is se caller ko pata chalta hai ke reading nahi mili,
+  /// aur woh purani (last known good) value ko wahi rakh sakta hai, use
+  /// zeros se overwrite karne ki bajaye.
+  Future<MeterData?> fetchOnce() async {
     try {
       final response = await http
           .get(Uri.parse(_latestUrl))
@@ -42,16 +46,24 @@ class FirebaseMeterService {
         return _fromJson(data);
       }
     } catch (e) {
-      // Network error, Firebase abhi khaali hai, waghera — empty data wapas karein
+      // Network error, timeout, waghera — 'null' wapas karte hain taake
+      // caller purani value ko na badle.
     }
-    return MeterData.empty();
+    return null;
   }
 
-  /// Har 2 second baad Firebase se naya reading laata rehta hai
+  /// Har 2 second baad Firebase se naya reading laata rehta hai.
+  /// Jab fetch fail ho, kuch bhi 'yield' nahi karta (stream chup chap agla
+  /// try karega) — is se UI mein achanak zeros nahi dikhte.
   Stream<MeterData> get meterStream async* {
     while (true) {
       await Future.delayed(const Duration(seconds: 2));
-      yield await fetchOnce();
+      final reading = await fetchOnce();
+      if (reading != null) {
+        yield reading;
+      }
+      // reading null ho to kuch yield nahi karte — purani value UI mein
+      // wahi rehti hai jab tak agli kamyaab reading na aa jaye.
     }
   }
 
@@ -60,11 +72,17 @@ class FirebaseMeterService {
     final current = (m['current'] as num?)?.toDouble() ?? 0;
     final power = (m['power'] as num?)?.toDouble() ?? 0;
 
+    // Firebase ka apna server timestamp use karte hain (ESP32 ke bheje hue
+    // waqt se), taake pata chal sake ke ye reading kitni purani hai —
+    // isi se "Meter Offline" detect hoga agar naya data aana ruk jaye.
     final tsMillis = (m['timestamp'] as num?)?.toInt();
     final timestamp = tsMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(tsMillis)
         : DateTime.now();
 
+    // Abhi sirf L1 (single-phase) se data aa raha hai, isliye L1 mein daal rahe hain
+    // aur L2/L3 ko 0 chhod rahe hain — connectedPhases field UI ko batata hai
+    // ke L2/L3 "not connected" hain, "0 reading" nahi.
     return MeterData(
       meterId: meterId,
       meterName: meterName,
