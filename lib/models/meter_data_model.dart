@@ -73,25 +73,48 @@ class MeterData {
   bool isPhaseConnected(int phase) => phase <= connectedPhases;
 
   /// Short label for display, e.g. "Testing 1 of 3 phases" or "Three-phase".
-  String get phaseStatusLabel => connectedPhases >= 3
-      ? 'Three-phase'
-      : 'Testing $connectedPhases of 3 phases';
+  String get phaseStatusLabel =>
+      connectedPhases >= 3 ? 'Three-phase' : 'Main line connected';
 
-  // ── Firebase factory (uncomment when ready) ────────────────────────────────
-  // factory MeterData.fromFirestore(Map<String, dynamic> m) => MeterData(
-  //   activePower : (m['active_power']      as num).toDouble(),
-  //   voltageL1   : (m['voltage_l1']        as num).toDouble(),
-  //   voltageL2   : (m['voltage_l2']        as num).toDouble(),
-  //   voltageL3   : (m['voltage_l3']        as num).toDouble(),
-  //   currentL1   : (m['current_l1']        as num).toDouble(),
-  //   currentL2   : (m['current_l2']        as num).toDouble(),
-  //   currentL3   : (m['current_l3']        as num).toDouble(),
-  //   powerFactor : (m['power_factor']      as num).toDouble(),
-  //   frequency   : (m['frequency']         as num).toDouble(),
-  //   totalEnergy : (m['total_energy_kwh']  as num).toDouble(),
-  //   timestamp   : (m['timestamp'] as Timestamp).toDate(),
-  //   connectedPhases: (m['connected_phases'] as num?)?.toInt() ?? 3,
-  // );
+  // ── Firebase Realtime Database factory ──────────────────────────────────────
+  // ESP32 /meters/{id}/latest path par yeh JSON bhejta hai:
+  //   { voltage, current, power (Watts), frequency, powerFactor, energy, timestamp }
+  // Abhi single-phase testing ho rahi hai, is liye voltage/current sirf L1
+  // mein map hote hain; L2/L3 zero rehte hain aur connectedPhases: 1 set hota
+  // hai taake UI unhe average/sum mein shamil na kare. Jab poora 3-phase
+  // wiring ho jaye, ESP32 code alag L1/L2/L3 registers bhejne lagega aur yahan
+  // bhi voltageL2/voltageL3/currentL2/currentL3 map karni hongi.
+  factory MeterData.fromFirebase(Map<dynamic, dynamic> m) {
+    final singleVoltage = (m['voltage'] as num?)?.toDouble() ?? 0;
+    final singleCurrent = (m['current'] as num?)?.toDouble() ?? 0;
+    final powerWatts = (m['power'] as num?)?.toDouble() ?? 0;
+
+    DateTime ts;
+    final rawTs = m['timestamp'];
+    if (rawTs is int) {
+      // Firebase ServerValue.TIMESTAMP milliseconds-since-epoch deta hai
+      ts = DateTime.fromMillisecondsSinceEpoch(rawTs);
+    } else if (rawTs is num) {
+      ts = DateTime.fromMillisecondsSinceEpoch(rawTs.toInt());
+    } else {
+      ts = DateTime.now();
+    }
+
+    return MeterData(
+      activePower: powerWatts / 1000.0, // Watts -> kW
+      voltageL1: singleVoltage,
+      voltageL2: 0,
+      voltageL3: 0,
+      currentL1: singleCurrent,
+      currentL2: 0,
+      currentL3: 0,
+      powerFactor: (m['powerFactor'] as num?)?.toDouble() ?? 0,
+      frequency: (m['frequency'] as num?)?.toDouble() ?? 0,
+      totalEnergy: (m['energy'] as num?)?.toDouble() ?? 0,
+      timestamp: ts,
+      connectedPhases: 1, // ESP32 abhi sirf 1 phase bhej raha hai
+    );
+  }
 }
 
 class DailyUsage {

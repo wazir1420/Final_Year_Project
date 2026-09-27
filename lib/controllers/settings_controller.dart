@@ -14,7 +14,7 @@ class SettingsController extends GetxController {
   final dailySummary = false.obs;
 
   // Meter & connection
-  final meterModel = 'CHINT DTSU666'.obs;
+  final meterModel = 'ABB B24'.obs;
   final isFirebaseConnected = true.obs;
 
   // App preferences

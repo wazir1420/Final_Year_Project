@@ -86,11 +86,7 @@ class _Header extends GetView<DashboardController> {
                 ),
               ),
               const SizedBox(height: 8),
-              Obx(
-                () => controller.isLive.value
-                    ? const LiveBadge()
-                    : const SizedBox.shrink(),
-              ),
+              Obx(() => LiveBadge(isOnline: controller.isMeterOnline.value)),
             ],
           ),
         ),

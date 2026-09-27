@@ -5,7 +5,7 @@ import '../models/meter_data_model.dart';
 import '../models/bill_model.dart';
 import '../routes/app_routes.dart';
 import '../services/firebase_meter_service.dart';
-import '../services/dummy_data_service.dart';
+import '../services/firebase_history_service.dart';
 import 'settings_controller.dart';
 
 class DashboardController extends GetxController {
@@ -16,9 +16,9 @@ class DashboardController extends GetxController {
     connectedPhases: 1,
   );
 
-  // Monthly/daily history abhi Firebase mein save nahi ho rahi (agla step),
-  // isliye chart data filhal simulate hi hota hai — live readings real hain.
-  final DummyDataService _historyService = DummyDataService();
+  // Monthly/daily history ab Firebase ke '/history' se aati hai —
+  // meter ke real cumulative energy readings se calculate hoti hai.
+  final FirebaseHistoryService _historyService = FirebaseHistoryService();
 
   // Observable variables
   final RxBool isLoading = true.obs;
@@ -67,8 +67,8 @@ class DashboardController extends GetxController {
     super.onClose();
   }
 
-  void loadMonthlyData() {
-    final monthly = _historyService.getMonthlyData();
+  void loadMonthlyData() async {
+    final monthly = await _historyService.fetchMonthlyData();
 
     monthlyKwh.value = monthly.totalKwh;
 

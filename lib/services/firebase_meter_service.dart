@@ -12,16 +12,23 @@ class FirebaseMeterService {
   static const String _dbUrl =
       'https://finalyearproject-2034b-default-rtdb.asia-southeast1.firebasedatabase.app';
 
+  /// ESP32 code mein jo METER_ID diya hai, wahi yahan match hona chahiye
+  /// (abhi ESP32 mein "meter1" hai)
+  final String meterId;
+
   /// Kitne phases abhi connected hain (testing ke dauran 1, poore setup mein 3)
   final int connectedPhases;
 
-  FirebaseMeterService({this.connectedPhases = 1});
+  FirebaseMeterService({this.meterId = 'meter1', this.connectedPhases = 1});
+
+  /// ESP32 jahan latest reading likhta hai: /meters/{meterId}/latest
+  String get _latestUrl => '$_dbUrl/meters/$meterId/latest.json';
 
   /// Ek dafa turant reading le kar aata hai (app shuru hote hi use hota hai)
   Future<MeterData> fetchOnce() async {
     try {
       final response = await http
-          .get(Uri.parse('$_dbUrl/latest.json'))
+          .get(Uri.parse(_latestUrl))
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200 && response.body != 'null') {
@@ -68,8 +75,10 @@ class FirebaseMeterService {
       currentL3: 0,
       powerFactor: (m['powerFactor'] as num?)?.toDouble() ?? 0,
       frequency: (m['frequency'] as num?)?.toDouble() ?? 0,
-      totalEnergy:
-          0, // Baad mein energy register bhi Firebase mein add kar sakte hain
+      // ESP32 ab "energy" field bhi bhejta hai (Resettable Energy register se,
+      // 0.01 kWh resolution) — pehle yeh hamesha 0 tha, ab asal cumulative
+      // energy Firebase se aati hai.
+      totalEnergy: (m['energy'] as num?)?.toDouble() ?? 0,
       timestamp: timestamp,
       connectedPhases: connectedPhases,
     );
