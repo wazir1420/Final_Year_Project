@@ -57,6 +57,7 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
+// ── Header ────────────────────────────────────────────────────────────────────
 class _Header extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) => Container(

@@ -74,7 +74,7 @@ class MeterData {
 
   /// Short label for display, e.g. "Testing 1 of 3 phases" or "Three-phase".
   String get phaseStatusLabel =>
-      connectedPhases >= 3 ? 'Three-phase' : 'Main line connected';
+      connectedPhases >= 3 ? 'Three-phase' : ' Main line connected';
 
   // ── Firebase Realtime Database factory ──────────────────────────────────────
   // ESP32 /meters/{id}/latest path par yeh JSON bhejta hai:

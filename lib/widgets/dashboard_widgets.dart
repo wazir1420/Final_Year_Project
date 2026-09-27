@@ -79,6 +79,8 @@ class _LiveBadgeState extends State<LiveBadge>
 
   @override
   Widget build(BuildContext context) {
+    // Online: hara pulsing badge (jaisa pehle tha)
+    // Offline: laal, bina pulse ke, alag text
     final Color tint = widget.isOnline ? kGreenTint : const Color(0xFFFCEBEB);
     final Color dot = widget.isOnline ? kGreenDot : const Color(0xFF991F1F);
     final Color textColor = widget.isOnline ? kGreen : const Color(0xFF991F1F);
