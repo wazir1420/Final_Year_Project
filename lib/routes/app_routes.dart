@@ -2,19 +2,22 @@ import 'package:finalyearproject/views/splash_view.dart';
 import 'package:get/get.dart';
 
 import '../bindings/splash_binding.dart';
-import '../bindings/dashboard_binding.dart';
 import '../bindings/analytics_binding.dart';
 import '../bindings/bills_binding.dart';
 import '../bindings/settings_binding.dart';
+import '../controllers/dashboard_controller.dart';
+import '../controllers/meters_list_controller.dart';
 import '../views/analytics_view.dart';
 import '../views/bills_view.dart';
 import '../views/dashboard_view.dart';
+import '../views/meters_list_view.dart';
 import '../views/ml_prediction_view.dart';
 import '../views/settings_view.dart';
 
 class AppRoutes {
   static const splash = '/splash';
   static const dashboard = '/dashboard';
+  static const meters = '/meters';
   static const analytics = '/analytics';
   static const bills = '/bills';
   static const settings = '/settings';
@@ -29,9 +32,23 @@ class AppRoutes {
     ),
 
     GetPage(
+      name: meters,
+      page: () => const MetersListView(),
+      binding: BindingsBuilder(() {
+        Get.put(MetersListController());
+      }),
+      transition: Transition.fadeIn,
+    ),
+
+    GetPage(
       name: dashboard,
       page: () => const DashboardView(),
-      binding: DashboardBinding(),
+      binding: BindingsBuilder(() {
+        final args = (Get.arguments as Map?) ?? {};
+        final meterId = args['meterId']?.toString() ?? 'meter1';
+        final meterName = args['meterName']?.toString() ?? '';
+        Get.put(DashboardController(meterId: meterId, meterName: meterName));
+      }),
       transition: Transition.fadeIn,
     ),
 

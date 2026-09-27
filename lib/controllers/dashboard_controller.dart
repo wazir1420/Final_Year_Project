@@ -9,13 +9,16 @@ import '../services/firebase_history_service.dart';
 import 'settings_controller.dart';
 
 class DashboardController extends GetxController {
-  // Ab live meter reading Firebase se aa rahi hai (ESP32 wahan bhejta hai).
-  // Testing abhi 1 phase (L1) par ho rahi hai — poore 3-phase setup ke baad
-  // connectedPhases: 3 kar dein, baaki kuch change nahi karna hoga.
-  final FirebaseMeterService _service = FirebaseMeterService(
+  final String meterId;
+  final String meterName;
+
+  DashboardController({required this.meterId, this.meterName = ''});
+
+  late final FirebaseMeterService _service = FirebaseMeterService(
+    meterId: meterId,
+    meterName: meterName,
     connectedPhases: 1,
   );
-
   // Monthly/daily history ab Firebase ke '/history' se aati hai —
   // meter ke real cumulative energy readings se calculate hoti hai.
   final FirebaseHistoryService _historyService = FirebaseHistoryService();

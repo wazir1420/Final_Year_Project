@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'theme_controller.dart';
+import '../routes/app_routes.dart';
 
 class SettingsController extends GetxController {
   // Account summary — swap these for your AuthController / ProfileController
@@ -14,7 +15,7 @@ class SettingsController extends GetxController {
   final dailySummary = false.obs;
 
   // Meter & connection
-  final meterModel = 'ABB B24'.obs;
+  final meterModel = 'ABB B24 '.obs;
   final isFirebaseConnected = true.obs;
 
   // App preferences
@@ -49,7 +50,7 @@ class SettingsController extends GetxController {
 
   void goToProfile() => Get.toNamed('/profile');
 
-  void goToMeterConfig() => Get.toNamed('/meter-config');
+  void goToMeterConfig() => Get.toNamed(AppRoutes.meters);
 
   void selectLanguage() {
     _showPicker(

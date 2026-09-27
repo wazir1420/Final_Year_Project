@@ -13,13 +13,19 @@ class FirebaseMeterService {
       'https://finalyearproject-2034b-default-rtdb.asia-southeast1.firebasedatabase.app';
 
   /// ESP32 code mein jo METER_ID diya hai, wahi yahan match hona chahiye
-  /// (abhi ESP32 mein "meter1" hai)
   final String meterId;
+
+  /// Meters List screen se jo naam mila (sirf reference ke liye rakha hai)
+  final String meterName;
 
   /// Kitne phases abhi connected hain (testing ke dauran 1, poore setup mein 3)
   final int connectedPhases;
 
-  FirebaseMeterService({this.meterId = 'meter1', this.connectedPhases = 1});
+  FirebaseMeterService({
+    this.meterId = 'meter1',
+    this.meterName = '',
+    this.connectedPhases = 1,
+  });
 
   /// ESP32 jahan latest reading likhta hai: /meters/{meterId}/latest
   String get _latestUrl => '$_dbUrl/meters/$meterId/latest.json';
@@ -54,18 +60,14 @@ class FirebaseMeterService {
     final current = (m['current'] as num?)?.toDouble() ?? 0;
     final power = (m['power'] as num?)?.toDouble() ?? 0;
 
-    // Firebase ka apna server timestamp use karte hain (ESP32 ke bheje hue
-    // waqt se), taake pata chal sake ke ye reading kitni purani hai —
-    // isi se "Meter Offline" detect hoga agar naya data aana ruk jaye.
     final tsMillis = (m['timestamp'] as num?)?.toInt();
     final timestamp = tsMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(tsMillis)
         : DateTime.now();
 
-    // Abhi sirf L1 (single-phase) se data aa raha hai, isliye L1 mein daal rahe hain
-    // aur L2/L3 ko 0 chhod rahe hain — connectedPhases field UI ko batata hai
-    // ke L2/L3 "not connected" hain, "0 reading" nahi.
     return MeterData(
+      meterId: meterId,
+      meterName: meterName,
       activePower: power / 1000, // W se kW
       voltageL1: voltage,
       voltageL2: 0,
@@ -75,9 +77,6 @@ class FirebaseMeterService {
       currentL3: 0,
       powerFactor: (m['powerFactor'] as num?)?.toDouble() ?? 0,
       frequency: (m['frequency'] as num?)?.toDouble() ?? 0,
-      // ESP32 ab "energy" field bhi bhejta hai (Resettable Energy register se,
-      // 0.01 kWh resolution) — pehle yeh hamesha 0 tha, ab asal cumulative
-      // energy Firebase se aati hai.
       totalEnergy: (m['energy'] as num?)?.toDouble() ?? 0,
       timestamp: timestamp,
       connectedPhases: connectedPhases,
