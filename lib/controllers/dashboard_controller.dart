@@ -6,7 +6,6 @@ import '../models/bill_model.dart';
 import '../routes/app_routes.dart';
 import '../services/firebase_meter_service.dart';
 import '../services/firebase_history_service.dart';
-import 'settings_controller.dart';
 
 class DashboardController extends GetxController {
   final String meterId;
@@ -19,9 +18,12 @@ class DashboardController extends GetxController {
     meterName: meterName,
     connectedPhases: 1,
   );
-  // Monthly/daily history ab Firebase ke '/history' se aati hai —
+
+  // Monthly/daily history ab isi meter ke Firebase '/history' se aati hai —
   // meter ke real cumulative energy readings se calculate hoti hai.
-  final FirebaseHistoryService _historyService = FirebaseHistoryService();
+  late final FirebaseHistoryService _historyService = FirebaseHistoryService(
+    meterId: meterId,
+  );
 
   // Observable variables
   final RxBool isLoading = true.obs;
@@ -148,14 +150,14 @@ class DashboardController extends GetxController {
         : 0;
   }
 
+  /// Ab isi meter ka asli naam dikhata hai (jo ESP32 ne Firebase mein register
+  /// kiya tha), taake har meter ka apna sahi naam dikhe, na ke hamesha ek hi
+  /// fixed naam (jaisa Settings-based approach mein hota tha).
   String get connectedMeterName {
-    if (Get.isRegistered<SettingsController>()) {
-      return Get.find<SettingsController>().meterModel.value;
-    }
-
-    final fallback = SettingsController();
-    Get.put<SettingsController>(fallback);
-    return fallback.meterModel.value;
+    final liveName = meterData.value.meterName;
+    if (liveName.isNotEmpty) return liveName;
+    if (meterName.isNotEmpty) return meterName;
+    return meterId;
   }
 
   /// "Meter Offline" agar data purana ho, warna "Testing 1 of 3 phases" waghera
