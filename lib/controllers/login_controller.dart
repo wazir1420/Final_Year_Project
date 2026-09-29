@@ -28,7 +28,7 @@ class LoginController extends GetxController {
       requestError.value = 'Name and email are required';
       return false;
     }
-    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+    if (!AuthService.isValidEmail(email)) {
       requestError.value = 'Enter a valid email address';
       return false;
     }

@@ -36,7 +36,17 @@ class AddCustomerView extends GetView<AdminController> {
               const SizedBox(height: 14),
 
               const _Label('EMAIL'),
-              _field(controller.emailController, 'customer@example.com'),
+              Obx(
+                () => _field(
+                  controller.emailController,
+                  'customer@gmail.com',
+                  keyboardType: TextInputType.emailAddress,
+                  errorText: controller.emailError.value.isEmpty
+                      ? null
+                      : controller.emailError.value,
+                  onChanged: controller.validateCustomerEmail,
+                ),
+              ),
               const SizedBox(height: 14),
 
               const _Label('PASSWORD'),
@@ -162,14 +172,20 @@ class AddCustomerView extends GetView<AdminController> {
     String hint, {
     bool obscure = false,
     Widget? suffixIcon,
+    TextInputType? keyboardType,
+    String? errorText,
+    ValueChanged<String>? onChanged,
   }) => Padding(
     padding: const EdgeInsets.only(top: 4),
     child: TextField(
       controller: c,
       obscureText: obscure,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(fontSize: 12, color: _kMutedText),
+        errorText: errorText,
         suffixIcon: suffixIcon,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,

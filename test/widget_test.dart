@@ -10,11 +10,24 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:finalyearproject/main.dart';
 import 'package:finalyearproject/models/meter_summary_model.dart';
+import 'package:finalyearproject/services/auth_service.dart';
 import 'package:finalyearproject/widgets/dashboard_widgets.dart';
 
 void main() {
   test('MyApp instantiates', () {
     expect(const MyApp(), isNotNull);
+  });
+
+  test('email validator rejects malformed addresses', () {
+    expect(AuthService.isValidEmail('person@example.com'), isTrue);
+    expect(AuthService.isValidEmail(' person@example.com '), isTrue);
+    expect(AuthService.isValidEmail('person@localhost'), isFalse);
+    expect(AuthService.isValidEmail('not-an-email'), isFalse);
+    expect(AuthService.isValidEmail('person..name@example.com'), isFalse);
+    expect(AuthService.isValidEmail('person@example..com'), isFalse);
+    expect(AuthService.isValidEmail('person@example.c'), isFalse);
+    expect(AuthService.isValidGmail('person@gmail.com'), isTrue);
+    expect(AuthService.isValidGmail('person@example.com'), isFalse);
   });
 
   test('meter without a reading is offline', () {

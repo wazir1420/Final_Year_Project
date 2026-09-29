@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class AdminCustomer {
   final String uid;
@@ -44,11 +45,97 @@ class AdminService {
       'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_apiKey';
   static const String _dbUrl =
       'https://finalyearproject-2034b-default-rtdb.asia-southeast1.firebasedatabase.app';
+  static const String _passwordResetUrl =
+      'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=$_apiKey';
+  static const String _deleteCustomerUrl =
+      'https://asia-southeast1-finalyearproject-2034b.cloudfunctions.net/deleteCustomer';
+
+  Future<void> deleteCustomer({
+    required String customerUid,
+    required String idToken,
+  }) async {
+    final response = await http
+        .post(
+          Uri.parse(_deleteCustomerUrl),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $idToken',
+          },
+          body: jsonEncode({'uid': customerUid}),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(
+        data['error']?.toString() ?? 'Customer could not be deleted.',
+      );
+    }
+  }
+
+  Future<void> deleteCustomerAccount({
+    required String customerUid,
+    required String idToken,
+  }) => deleteCustomer(customerUid: customerUid, idToken: idToken);
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    final response = await http
+        .post(
+          Uri.parse(_passwordResetUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'requestType': 'PASSWORD_RESET', 'email': email}),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode == 200) return;
+
+    final errorCode = data['error']?['message']?.toString() ?? 'UNKNOWN';
+    if (errorCode.contains('EMAIL_NOT_FOUND') ||
+        errorCode.contains('USER_NOT_FOUND')) {
+      throw Exception(
+        'This email is not registered in Firebase Authentication.',
+      );
+    }
+    if (errorCode.contains('INVALID_EMAIL')) {
+      throw Exception('Customer email address is invalid.');
+    }
+    if (errorCode.contains('OPERATION_NOT_ALLOWED')) {
+      throw Exception(
+        'Enable Email/Password sign-in in Firebase Authentication.',
+      );
+    }
+    if (errorCode.contains('TOO_MANY_ATTEMPTS')) {
+      throw Exception('Too many reset requests. Wait a while and try again.');
+    }
+    throw Exception('Firebase reset request failed: $errorCode');
+  }
+
+  Future<void> updateCustomerName({
+    required String customerUid,
+    required String name,
+  }) async {
+    final response = await http
+        .patch(
+          Uri.parse('$_dbUrl/users/$customerUid.json'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'name': name}),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200) {
+      throw Exception('Customer details could not be updated. Try again.');
+    }
+  }
 
   /// Naya Firebase Authentication account banata hai (sirf email/password),
   /// UID wapas karta hai. Admin ke apne login session par koi asar nahi
   /// padta kyunke ye stateless REST call hai.
   Future<String> _createAuthAccount(String email, String password) async {
+    if (!AuthService.isValidGmail(email)) {
+      throw Exception('Enter a valid Gmail address');
+    }
+
     final response = await http.post(
       Uri.parse(_signUpUrl),
       headers: {'Content-Type': 'application/json'},
@@ -61,11 +148,14 @@ class AdminService {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode == 200) {
-      return data['localId'] as String;
+      return data['localId']?.toString() ?? '';
     }
     final errorCode = data['error']?['message'] as String? ?? '';
     if (errorCode.contains('EMAIL_EXISTS')) {
       throw Exception('Ye email pehle se registered hai');
+    }
+    if (errorCode.contains('INVALID_EMAIL')) {
+      throw Exception('Enter a valid email address');
     }
     if (errorCode.contains('WEAK_PASSWORD')) {
       throw Exception('Password kam az kam 6 characters ka hona chahiye');

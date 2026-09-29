@@ -17,6 +17,48 @@ class AuthService {
 
   static const String _dbUrl =
       'https://finalyearproject-2034b-default-rtdb.asia-southeast1.firebasedatabase.app';
+  static final RegExp _emailLocalPartPattern = RegExp(
+    r"^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+$",
+    caseSensitive: false,
+  );
+  static final RegExp _emailDomainLabelPattern = RegExp(
+    r'^[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?$',
+    caseSensitive: false,
+  );
+  static final RegExp _emailTopLevelDomainPattern = RegExp(
+    r'^(?:[A-Z]{2,63}|XN--[A-Z0-9-]{2,59})$',
+    caseSensitive: false,
+  );
+
+  static bool isValidEmail(String email) {
+    final normalized = email.trim();
+    if (normalized.length > 254) return false;
+
+    final atIndex = normalized.indexOf('@');
+    if (atIndex <= 0 || atIndex != normalized.lastIndexOf('@')) return false;
+
+    final localPart = normalized.substring(0, atIndex);
+    final domainLabels = normalized.substring(atIndex + 1).split('.');
+    if (localPart.length > 64 ||
+        localPart.startsWith('.') ||
+        localPart.endsWith('.') ||
+        localPart.contains('..') ||
+        !_emailLocalPartPattern.hasMatch(localPart) ||
+        domainLabels.length < 2 ||
+        domainLabels.any(
+          (label) =>
+              label.isEmpty ||
+              label.length > 63 ||
+              !_emailDomainLabelPattern.hasMatch(label),
+        )) {
+      return false;
+    }
+
+    return _emailTopLevelDomainPattern.hasMatch(domainLabels.last);
+  }
+
+  static bool isValidGmail(String email) =>
+      isValidEmail(email) && email.trim().toLowerCase().endsWith('@gmail.com');
 
   /// Email/password se login karta hai. Kamyaab hone par user ka UID wapas
   /// karta hai. Fail hone par Exception throw karta hai (message user ko
@@ -75,6 +117,37 @@ class AuthService {
 
   Future<void> saveSession(AuthSession session) async {
     await _storage.write(key: _refreshTokenKey, value: session.refreshToken);
+  }
+
+  Future<String> getFreshIdToken() async {
+    final refreshToken = await _storage.read(key: _refreshTokenKey);
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw Exception('Admin session has expired. Please sign in again.');
+    }
+
+    final response = await http
+        .post(
+          Uri.parse(_refreshUrl),
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: {'grant_type': 'refresh_token', 'refresh_token': refreshToken},
+        )
+        .timeout(const Duration(seconds: 10));
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Could not verify the admin session. Please sign in again.',
+      );
+    }
+
+    final idToken = data['id_token']?.toString() ?? '';
+    final newRefreshToken = data['refresh_token']?.toString() ?? '';
+    if (idToken.isEmpty || newRefreshToken.isEmpty) {
+      throw Exception(
+        'Could not verify the admin session. Please sign in again.',
+      );
+    }
+    await _storage.write(key: _refreshTokenKey, value: newRefreshToken);
+    return idToken;
   }
 
   Future<AuthSession?> restoreSession() async {
