@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../routes/app_routes.dart';
 import '../widgets/ripple_painter.dart';
 import '../widgets/logo_mark.dart';
 import '../widgets/floating_particles.dart';
@@ -146,13 +144,6 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     _entryCtrl.forward();
     await Future.delayed(const Duration(milliseconds: 900));
     _loaderCtrl.forward();
-
-    // Ensure the app leaves the splash screen after the loader animation.
-    Future.delayed(const Duration(milliseconds: 3600), () {
-      if (mounted) {
-        Get.offAllNamed(AppRoutes.login);
-      }
-    });
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'dashboard_controller.dart';
 import 'theme_controller.dart';
 import '../routes/app_routes.dart';
+import '../services/auth_service.dart';
 import '../services/firebase_meters_list_service.dart';
 
 class SettingsController extends GetxController {
@@ -19,6 +20,7 @@ class SettingsController extends GetxController {
   // Meter & connection
   final meterModel = 'Loading...'.obs;
   final isFirebaseConnected = false.obs;
+  final AuthService _authService = AuthService();
   final FirebaseMetersListService _metersService = FirebaseMetersListService();
   Worker? _connectionStatusWorker;
 
@@ -184,6 +186,7 @@ class SettingsController extends GetxController {
     );
 
     if (confirmed == true) {
+      await _authService.clearSession();
       Get.offAllNamed('/login');
     }
   }

@@ -66,9 +66,9 @@ class LoginController extends GetxController {
     errorMessage.value = '';
 
     try {
-      final uid = await _authService.signIn(email, password);
+      final session = await _authService.signIn(email, password);
 
-      final profile = await _authService.fetchUserProfile(uid);
+      final profile = await _authService.fetchUserProfile(session.uid);
 
       if (profile == null) {
         errorMessage.value =
@@ -77,12 +77,14 @@ class LoginController extends GetxController {
         return;
       }
 
+      await _authService.saveSession(session);
+
       final displayName = profile.name.trim().isNotEmpty
           ? profile.name.trim()
-          : email.split('@').first;
+          : session.email.split('@').first;
       final displayEmail = profile.email.trim().isNotEmpty
           ? profile.email.trim()
-          : email;
+          : session.email;
 
       if (profile.isAdmin) {
         Get.offAllNamed(AppRoutes.adminPanel);

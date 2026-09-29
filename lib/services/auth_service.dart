@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 /// Firebase Authentication ke REST API se login karta hai (koi firebase_auth
@@ -9,6 +10,10 @@ class AuthService {
   static const String _apiKey = 'AIzaSyBPYzRRdPnMBtVv_3wBbbAlTEDfHKesu-k';
   static const String _authUrl =
       'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$_apiKey';
+  static const String _refreshUrl =
+      'https://securetoken.googleapis.com/v1/token?key=$_apiKey';
+  static const String _refreshTokenKey = 'firebase_refresh_token';
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   static const String _dbUrl =
       'https://finalyearproject-2034b-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -16,7 +21,7 @@ class AuthService {
   /// Email/password se login karta hai. Kamyaab hone par user ka UID wapas
   /// karta hai. Fail hone par Exception throw karta hai (message user ko
   /// dikhaya ja sakta hai).
-  Future<String> signIn(String email, String password) async {
+  Future<AuthSession> signIn(String email, String password) async {
     final response = await http
         .post(
           Uri.parse(_authUrl),
@@ -32,7 +37,11 @@ class AuthService {
     final data = jsonDecode(response.body) as Map<String, dynamic>;
 
     if (response.statusCode == 200) {
-      return data['localId'] as String; // ye Firebase ka UID hai
+      return AuthSession(
+        uid: data['localId']?.toString() ?? '',
+        email: data['email']?.toString() ?? email,
+        refreshToken: data['refreshToken']?.toString() ?? '',
+      );
     }
 
     // Firebase error codes ko simple Roman Urdu message mein convert karte hain
@@ -64,6 +73,56 @@ class AuthService {
     return 'Login nahi ho saka, dobara koshish karein';
   }
 
+  Future<void> saveSession(AuthSession session) async {
+    await _storage.write(key: _refreshTokenKey, value: session.refreshToken);
+  }
+
+  Future<AuthSession?> restoreSession() async {
+    try {
+      final refreshToken = await _storage
+          .read(key: _refreshTokenKey)
+          .timeout(const Duration(seconds: 3));
+      if (refreshToken == null || refreshToken.isEmpty) return null;
+
+      final response = await http
+          .post(
+            Uri.parse(_refreshUrl),
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {
+              'grant_type': 'refresh_token',
+              'refresh_token': refreshToken,
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode == 200) {
+        final session = AuthSession(
+          uid: data['user_id']?.toString() ?? '',
+          email: data['email']?.toString() ?? '',
+          refreshToken: data['refresh_token']?.toString() ?? '',
+        );
+        if (session.uid.isEmpty || session.refreshToken.isEmpty) {
+          await clearSession();
+          return null;
+        }
+        await saveSession(session);
+        return session;
+      }
+
+      final errorCode = data['error']?['message']?.toString() ?? '';
+      if (errorCode.contains('INVALID_GRANT') ||
+          errorCode.contains('USER_DISABLED')) {
+        await clearSession();
+      }
+    } catch (e) {
+      // Keep the saved token when the failure may only be a network issue.
+    }
+    return null;
+  }
+
+  Future<void> clearSession() => _storage.delete(key: _refreshTokenKey);
+
   /// Login hone ke baad user ka record Realtime Database se laata hai —
   /// isi se pata chalta hai ke role kya hai (admin/customer) aur customer
   /// ke paas kaunse meters hain.
@@ -82,6 +141,18 @@ class AuthService {
     }
     return null;
   }
+}
+
+class AuthSession {
+  final String uid;
+  final String email;
+  final String refreshToken;
+
+  const AuthSession({
+    required this.uid,
+    required this.email,
+    required this.refreshToken,
+  });
 }
 
 /// Login hone ke baad user ke baare mein zaroori maloomat

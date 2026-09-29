@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/admin_controller.dart';
 import '../services/admin_service.dart';
+import '../services/auth_service.dart';
 import '../routes/app_routes.dart';
 import '../widgets/dashboard_widgets.dart';
 
@@ -115,8 +116,9 @@ class AdminPanelView extends GetView<AdminController> {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Get.back(); // dialog band karein
+              await AuthService().clearSession();
               Get.offAllNamed(AppRoutes.login);
             },
             child: const Text('Logout'),
