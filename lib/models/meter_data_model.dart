@@ -44,7 +44,7 @@ class MeterData {
     powerFactor: 0,
     frequency: 0,
     totalEnergy: 0,
-    timestamp: DateTime.now(),
+    timestamp: DateTime.fromMillisecondsSinceEpoch(0),
     connectedPhases: 3,
   );
 

@@ -167,9 +167,14 @@ class SettingsView extends GetView<SettingsController> {
             () => Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  controller.meterModel.value,
-                  style: const TextStyle(color: Colors.grey),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 140),
+                  child: Text(
+                    controller.meterModel.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ),
                 const Icon(Icons.chevron_right, color: Colors.grey),
               ],

@@ -33,7 +33,7 @@ class MeterSummary {
       name: (data['name'] ?? id).toString(),
       activePower: powerW / 1000,
       avgVoltage: voltage,
-      isOnline: ageSeconds < 10,
+      isOnline: ageSeconds >= 0 && ageSeconds < 10,
       lastUpdated: timestamp,
     );
   }

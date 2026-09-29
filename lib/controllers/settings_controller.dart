@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dashboard_controller.dart';
 import 'theme_controller.dart';
 import '../routes/app_routes.dart';
+import '../services/firebase_meters_list_service.dart';
 
 class SettingsController extends GetxController {
   // Account summary — swap these for your AuthController / ProfileController
   // once that's wired up, e.g. Get.find<ProfileController>().name
-  final userName = 'Wazir Tatheer'.obs;
-  final userEmail = 'wazirbalti1@gmail.com'.obs;
+  final userName = ''.obs;
+  final userEmail = ''.obs;
 
   // Alerts
   final billThresholdAlert = true.obs;
@@ -15,8 +17,10 @@ class SettingsController extends GetxController {
   final dailySummary = false.obs;
 
   // Meter & connection
-  final meterModel = 'ABB B24 '.obs;
-  final isFirebaseConnected = true.obs;
+  final meterModel = 'Loading...'.obs;
+  final isFirebaseConnected = false.obs;
+  final FirebaseMetersListService _metersService = FirebaseMetersListService();
+  Worker? _connectionStatusWorker;
 
   // App preferences
   final isDarkMode = false.obs;
@@ -26,11 +30,38 @@ class SettingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    final arguments = Get.arguments;
+    final routeName = arguments is Map
+        ? arguments['userName']?.toString().trim()
+        : null;
+    if (routeName != null && routeName.isNotEmpty) userName.value = routeName;
+    final routeEmail = arguments is Map
+        ? arguments['userEmail']?.toString().trim()
+        : null;
+    if (routeEmail != null && routeEmail.isNotEmpty) {
+      userEmail.value = routeEmail;
+    }
+    if (Get.isRegistered<DashboardController>()) {
+      final dashboardController = Get.find<DashboardController>();
+      isFirebaseConnected.value = dashboardController.isMeterOnline.value;
+      _connectionStatusWorker = ever(
+        dashboardController.isMeterOnline,
+        (isOnline) => isFirebaseConnected.value = isOnline,
+      );
+    }
+
     // initialize from global ThemeController so state stays in sync
     final themeCtrl = Get.isRegistered<ThemeController>()
         ? Get.find<ThemeController>()
         : Get.put(ThemeController());
     isDarkMode.value = themeCtrl.isDark;
+    _loadMeterModel();
+  }
+
+  @override
+  void onClose() {
+    _connectionStatusWorker?.dispose();
+    super.onClose();
   }
 
   void toggleBillThresholdAlert(bool value) => billThresholdAlert.value = value;
@@ -50,7 +81,30 @@ class SettingsController extends GetxController {
 
   void goToProfile() => Get.toNamed('/profile');
 
-  void goToMeterConfig() => Get.toNamed(AppRoutes.meters);
+  List<String> get _assignedMeterIds {
+    final routeArguments = Get.arguments;
+    final routeMeterIds = routeArguments is Map
+        ? routeArguments['meterIds']
+        : null;
+    if (routeMeterIds is Iterable) {
+      return routeMeterIds.whereType<String>().toList();
+    }
+    if (Get.isRegistered<DashboardController>()) {
+      return Get.find<DashboardController>().assignedMeterIds;
+    }
+    return [];
+  }
+
+  Future<void> _loadMeterModel() async {
+    final meters = await _metersService.fetchOnce(_assignedMeterIds);
+    meterModel.value = meters.isEmpty
+        ? 'No meter found'
+        : meters.map((meter) => meter.name).join(', ');
+  }
+
+  void goToMeterConfig() {
+    Get.toNamed(AppRoutes.meters, arguments: {'meterIds': _assignedMeterIds});
+  }
 
   void selectLanguage() {
     _showPicker(

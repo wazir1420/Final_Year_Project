@@ -9,11 +9,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:finalyearproject/main.dart';
+import 'package:finalyearproject/models/meter_summary_model.dart';
 import 'package:finalyearproject/widgets/dashboard_widgets.dart';
 
 void main() {
   test('MyApp instantiates', () {
     expect(const MyApp(), isNotNull);
+  });
+
+  test('meter without a reading is offline', () {
+    final meter = MeterSummary.fromJson('new-meter', {'name': 'New meter'});
+
+    expect(meter.isOnline, isFalse);
+    expect(meter.activePower, 0);
+  });
+
+  test('meter with a fresh reading is online', () {
+    final meter = MeterSummary.fromJson('live-meter', {
+      'latest': {'timestamp': DateTime.now().millisecondsSinceEpoch},
+    });
+
+    expect(meter.isOnline, isTrue);
   });
 
   testWidgets('PowerHeroCard shows the connected meter name', (tester) async {

@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
+import '../routes/app_routes.dart';
 
 class SplashController extends GetxController {
   // ── Navigation ─────────────────────────────────────────────────────────────
-  // Total splash duration before navigating to dashboard.
+  // Total splash duration before navigating to login.
   // Adjust to match your animation length (loader fills at ~3.4s total).
   static const _splashDuration = Duration(milliseconds: 3600);
 
@@ -14,7 +15,7 @@ class SplashController extends GetxController {
 
   void _navigateAfterDelay() {
     Future.delayed(_splashDuration, () {
-      Get.offAllNamed('/dashboard');
+      Get.offAllNamed(AppRoutes.login);
     });
   }
 }

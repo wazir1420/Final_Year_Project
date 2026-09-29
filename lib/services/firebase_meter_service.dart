@@ -78,7 +78,7 @@ class FirebaseMeterService {
     final tsMillis = (m['timestamp'] as num?)?.toInt();
     final timestamp = tsMillis != null
         ? DateTime.fromMillisecondsSinceEpoch(tsMillis)
-        : DateTime.now();
+        : DateTime.fromMillisecondsSinceEpoch(0);
 
     // Abhi sirf L1 (single-phase) se data aa raha hai, isliye L1 mein daal rahe hain
     // aur L2/L3 ko 0 chhod rahe hain — connectedPhases field UI ko batata hai

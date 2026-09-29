@@ -13,6 +13,24 @@ class MetersListController extends GetxController {
 
   StreamSubscription<List<MeterSummary>>? _sub;
 
+  List<String> get _assignedMeterIds {
+    final arguments = Get.arguments;
+    if (arguments is! Map) return [];
+    final meterIds = arguments['meterIds'];
+    if (meterIds is! Iterable) return [];
+    return meterIds.whereType<String>().toList();
+  }
+
+  String get _userName {
+    final arguments = Get.arguments;
+    return arguments is Map ? arguments['userName']?.toString() ?? '' : '';
+  }
+
+  String get _userEmail {
+    final arguments = Get.arguments;
+    return arguments is Map ? arguments['userEmail']?.toString() ?? '' : '';
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -26,10 +44,11 @@ class MetersListController extends GetxController {
   }
 
   void _load() async {
-    meters.assignAll(await _service.fetchOnce());
+    final meterIds = _assignedMeterIds;
+    meters.assignAll(await _service.fetchOnce(meterIds));
     isLoading.value = false;
 
-    _sub = _service.metersStream.listen((list) {
+    _sub = _service.metersStream(meterIds).listen((list) {
       meters.assignAll(list);
     });
   }
@@ -37,7 +56,13 @@ class MetersListController extends GetxController {
   void openMeter(MeterSummary meter) {
     Get.toNamed(
       AppRoutes.dashboard,
-      arguments: {'meterId': meter.id, 'meterName': meter.name},
+      arguments: {
+        'meterId': meter.id,
+        'meterName': meter.name,
+        'meterIds': _assignedMeterIds,
+        'userName': _userName,
+        'userEmail': _userEmail,
+      },
     );
   }
 

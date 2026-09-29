@@ -150,7 +150,7 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
     // Ensure the app leaves the splash screen after the loader animation.
     Future.delayed(const Duration(milliseconds: 3600), () {
       if (mounted) {
-        Get.offAllNamed(AppRoutes.dashboard);
+        Get.offAllNamed(AppRoutes.login);
       }
     });
   }

@@ -37,11 +37,12 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
   Widget build(BuildContext context) {
     // read reactive theme to trigger rebuild on theme changes too
     final _ = Get.find<ThemeController>().isDarkRx.value;
+    final topInset = MediaQuery.paddingOf(context).top;
     return Scaffold(
       backgroundColor: kSurface,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(96),
-        child: _Header(),
+        preferredSize: Size.fromHeight(108 + topInset),
+        child: SafeArea(bottom: false, child: _Header()),
       ),
       body: SafeArea(
         top: false,
@@ -61,7 +62,7 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
 class _Header extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
+    padding: const EdgeInsets.fromLTRB(20, 8, 16, 14),
     decoration: BoxDecoration(
       color: kCard,
       border: Border(bottom: BorderSide(color: kBorder, width: 0.5)),
@@ -77,16 +78,26 @@ class _Header extends GetView<DashboardController> {
                 'Good morning',
                 style: TextStyle(fontSize: 13, color: kMuted),
               ),
-              const SizedBox(height: 2),
-              Text(
-                'Power Insight',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: kPrimary,
+              const SizedBox(height: 6),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: 'Power',
+                      style: TextStyle(color: kPrimary),
+                    ),
+                    const TextSpan(
+                      text: 'Insight',
+                      style: TextStyle(color: Color(0xFF378ADD)),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Obx(() => LiveBadge(isOnline: controller.isMeterOnline.value)),
             ],
           ),
@@ -97,21 +108,34 @@ class _Header extends GetView<DashboardController> {
               icon: Icon(Icons.refresh_rounded, color: kMuted, size: 20),
               onPressed: controller.refreshData,
               tooltip: 'Refresh',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             ),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: kBlueTint,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text(
-                  'PI',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: kBlue,
+            Tooltip(
+              message: 'Settings',
+              child: IconButton(
+                onPressed: controller.goToSettings,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 40,
+                  height: 40,
+                ),
+                icon: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: const BoxDecoration(
+                    color: kBlueTint,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      controller.userInitials,
+                      style: const TextStyle(
+                        color: kBlue,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -11,8 +11,28 @@ import '../services/firebase_meters_list_service.dart';
 class DashboardController extends GetxController {
   final String meterId;
   final String meterName;
+  final String userName;
+  final String userEmail;
+  final List<String> assignedMeterIds;
 
-  DashboardController({required this.meterId, this.meterName = ''});
+  DashboardController({
+    required this.meterId,
+    this.meterName = '',
+    this.userName = '',
+    this.userEmail = '',
+    List<String>? assignedMeterIds,
+  }) : assignedMeterIds = assignedMeterIds?.toList() ?? [meterId];
+
+  String get userInitials {
+    final parts = userName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
 
   late final FirebaseMeterService _service = FirebaseMeterService(
     meterId: meterId,
@@ -33,7 +53,7 @@ class DashboardController extends GetxController {
   // Agar Firebase se 10 second tak koi naya data na aaye, ye false ho jata hai
   // aur UI "Meter Offline" dikhata hai — purani values ko live samajh kar
   // dikhate rehne se bachata hai.
-  final RxBool isMeterOnline = true.obs;
+  final RxBool isMeterOnline = false.obs;
   static const int _offlineThresholdSeconds = 20;
   Timer? _livenessTimer;
 
@@ -68,12 +88,9 @@ class DashboardController extends GetxController {
   }
 
   Future<void> _loadRegisteredMeterName() async {
-    final meters = await FirebaseMetersListService().fetchOnce();
-    for (final meter in meters) {
-      if (meter.id == meterId && meter.name.isNotEmpty) {
-        _registeredMeterName.value = meter.name;
-        return;
-      }
+    final meter = await FirebaseMetersListService().fetchMeter(meterId);
+    if (meter != null && meter.name.isNotEmpty) {
+      _registeredMeterName.value = meter.name;
     }
   }
 
@@ -102,6 +119,7 @@ class DashboardController extends GetxController {
     // (koi purani value hai hi nahi is se pehle) — baad ke updates mein
     // service khud null par purani value ko chhoo nahi degi.
     meterData.value = await _service.fetchOnce() ?? MeterData.empty();
+    _updateMeterOnlineStatus();
 
     isLoading.value = false;
 
@@ -109,6 +127,7 @@ class DashboardController extends GetxController {
 
     _meterSub = _service.meterStream.listen((reading) {
       meterData.value = reading;
+      _updateMeterOnlineStatus();
     });
 
     // Har 2 second check karta hai ke aakhri reading kitni purani hai —
@@ -116,11 +135,13 @@ class DashboardController extends GetxController {
     // phir bhi chalta rehta hai aur UI ko "Offline" dikha deta hai.
     _livenessTimer?.cancel();
     _livenessTimer = Timer.periodic(const Duration(seconds: 2), (_) {
-      final age = DateTime.now()
-          .difference(meterData.value.timestamp)
-          .inSeconds;
-      isMeterOnline.value = age < _offlineThresholdSeconds;
+      _updateMeterOnlineStatus();
     });
+  }
+
+  void _updateMeterOnlineStatus() {
+    final age = DateTime.now().difference(meterData.value.timestamp).inSeconds;
+    isMeterOnline.value = age >= 0 && age < _offlineThresholdSeconds;
   }
 
   void calculateBill() {
@@ -212,16 +233,24 @@ class DashboardController extends GetxController {
   // Navigation
 
   void goToAnalytics() {
-    Get.toNamed(AppRoutes.analytics);
+    Get.toNamed(AppRoutes.analytics, arguments: _dashboardArguments);
   }
 
   void goToBills() {
-    Get.toNamed(AppRoutes.bills);
+    Get.toNamed(AppRoutes.bills, arguments: _dashboardArguments);
   }
 
   void goToSettings() {
-    Get.toNamed(AppRoutes.settings);
+    Get.toNamed(AppRoutes.settings, arguments: _dashboardArguments);
   }
+
+  Map<String, dynamic> get _dashboardArguments => {
+    'meterId': meterId,
+    'meterName': meterName,
+    'meterIds': assignedMeterIds,
+    'userName': userName,
+    'userEmail': userEmail,
+  };
 
   void goToMlDetail() {
     Get.toNamed(AppRoutes.mlPrediction);

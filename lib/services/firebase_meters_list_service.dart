@@ -8,34 +8,32 @@ class FirebaseMetersListService {
   static const String _dbUrl =
       'https://finalyearproject-2034b-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-  Future<List<MeterSummary>> fetchOnce() async {
+  Future<MeterSummary?> fetchMeter(String meterId) async {
     try {
       final response = await http
-          .get(Uri.parse('$_dbUrl/meters.json'))
+          .get(Uri.parse('$_dbUrl/meters/${Uri.encodeComponent(meterId)}.json'))
           .timeout(const Duration(seconds: 5));
 
-      if (response.statusCode == 200 && response.body != 'null') {
-        final raw = jsonDecode(response.body) as Map<String, dynamic>;
-        return raw.entries
-            .map(
-              (e) => MeterSummary.fromJson(
-                e.key,
-                (e.value as Map).cast<String, dynamic>(),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.name.compareTo(b.name));
-      }
+      if (response.statusCode != 200 || response.body == 'null') return null;
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return MeterSummary.fromJson(meterId, data);
     } catch (e) {
       // network error, Firebase khaali, waghera
+      return null;
     }
-    return [];
   }
 
-  Stream<List<MeterSummary>> get metersStream async* {
+  Future<List<MeterSummary>> fetchOnce(List<String> meterIds) async {
+    final results = await Future.wait(meterIds.toSet().map(fetchMeter));
+    return results.whereType<MeterSummary>().toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  Stream<List<MeterSummary>> metersStream(List<String> meterIds) async* {
     while (true) {
       await Future.delayed(const Duration(seconds: 2));
-      yield await fetchOnce();
+      yield await fetchOnce(meterIds);
     }
   }
 }
