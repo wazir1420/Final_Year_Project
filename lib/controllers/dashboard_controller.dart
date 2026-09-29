@@ -7,6 +7,7 @@ import '../routes/app_routes.dart';
 import '../services/firebase_meter_service.dart';
 import '../services/firebase_history_service.dart';
 import '../services/firebase_meters_list_service.dart';
+import '../services/auth_service.dart';
 
 class DashboardController extends GetxController {
   final String meterId;
@@ -45,6 +46,7 @@ class DashboardController extends GetxController {
   late final FirebaseHistoryService _historyService = FirebaseHistoryService(
     meterId: meterId,
   );
+  final AuthService _authService = AuthService();
 
   // Observable variables
   final RxBool isLoading = true.obs;
@@ -70,6 +72,7 @@ class DashboardController extends GetxController {
   final RxDouble mlChange = 0.0.obs;
   final RxInt selectedTab = 0.obs;
   final RxString _registeredMeterName = ''.obs;
+  final RxString profilePhoto = ''.obs;
 
   // Tariff
   static const double ratePerKwh = 24.0;
@@ -83,6 +86,7 @@ class DashboardController extends GetxController {
     super.onInit();
 
     if (meterName.isEmpty) _loadRegisteredMeterName();
+    loadProfilePhoto();
     loadMonthlyData();
     startMeterStream();
   }
@@ -242,6 +246,21 @@ class DashboardController extends GetxController {
 
   void goToSettings() {
     Get.toNamed(AppRoutes.settings, arguments: _dashboardArguments);
+  }
+
+  Future<void> goToProfile() async {
+    final result = await Get.toNamed(
+      AppRoutes.profile,
+      arguments: {'userName': userName, 'userEmail': userEmail},
+    );
+    if (result is String) profilePhoto.value = result;
+  }
+
+  Future<void> loadProfilePhoto() async {
+    final uid = await _authService.getCurrentUid();
+    if (uid.isEmpty) return;
+    final profile = await _authService.fetchUserProfile(uid);
+    if (profile != null) profilePhoto.value = profile.profilePhoto;
   }
 
   Map<String, dynamic> get _dashboardArguments => {

@@ -11,6 +11,7 @@ class SettingsController extends GetxController {
   // once that's wired up, e.g. Get.find<ProfileController>().name
   final userName = ''.obs;
   final userEmail = ''.obs;
+  final profilePhoto = ''.obs;
 
   // Alerts
   final billThresholdAlert = true.obs;
@@ -43,6 +44,7 @@ class SettingsController extends GetxController {
     if (routeEmail != null && routeEmail.isNotEmpty) {
       userEmail.value = routeEmail;
     }
+    _loadUserProfile();
     if (Get.isRegistered<DashboardController>()) {
       final dashboardController = Get.find<DashboardController>();
       isFirebaseConnected.value = dashboardController.isMeterOnline.value;
@@ -81,7 +83,23 @@ class SettingsController extends GetxController {
     themeCtrl.isDark = value;
   }
 
-  void goToProfile() => Get.toNamed('/profile');
+  Future<void> goToProfile() async {
+    final updatedPhoto = await Get.toNamed(
+      '/profile',
+      arguments: {'userName': userName.value, 'userEmail': userEmail.value},
+    );
+    if (updatedPhoto is String) profilePhoto.value = updatedPhoto;
+  }
+
+  Future<void> _loadUserProfile() async {
+    final uid = await _authService.getCurrentUid();
+    if (uid.isEmpty) return;
+    final profile = await _authService.fetchUserProfile(uid);
+    if (profile == null) return;
+    if (profile.name.trim().isNotEmpty) userName.value = profile.name.trim();
+    if (profile.email.trim().isNotEmpty) userEmail.value = profile.email.trim();
+    profilePhoto.value = profile.profilePhoto;
+  }
 
   List<String> get _assignedMeterIds {
     final routeArguments = Get.arguments;

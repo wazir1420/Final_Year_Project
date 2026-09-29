@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'dart:convert';
 import 'package:get/get.dart';
 
 import '../controllers/settings_controller.dart';
@@ -60,10 +61,20 @@ class SettingsView extends GetView<SettingsController> {
 
   // ignore: unused_element
   String _initials(String name) {
-    final parts = name.trim().split(' ');
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.first.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
     return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
         .toUpperCase();
+  }
+
+  ImageProvider<Object>? _profileImage(String value) {
+    if (value.isEmpty) return null;
+    try {
+      return MemoryImage(base64Decode(value));
+    } on FormatException {
+      return null;
+    }
   }
 
   Widget _buildAccountRow() {
@@ -76,40 +87,45 @@ class SettingsView extends GetView<SettingsController> {
           borderRadius: BorderRadius.circular(12),
         ),
         padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: const Color(0xFFE6F1FB),
-              backgroundImage: const AssetImage('assets/images/wazir.png'),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Obx(
-                    () => Text(
+        child: Obx(() {
+          final image = _profileImage(controller.profilePhoto.value);
+          return Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: const Color(0xFFE6F1FB),
+                backgroundImage: image,
+                child: image == null
+                    ? Text(
+                        _initials(controller.userName.value),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       controller.userName.value,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Obx(
-                    () => Text(
+                    const SizedBox(height: 2),
+                    Text(
                       controller.userEmail.value,
                       style: const TextStyle(color: Colors.grey, fontSize: 13),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
+          );
+        }),
       ),
     );
   }

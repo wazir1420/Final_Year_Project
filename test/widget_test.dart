@@ -30,6 +30,21 @@ void main() {
     expect(AuthService.isValidGmail('person@example.com'), isFalse);
   });
 
+  test('user profile reads an optional saved profile photo', () {
+    final profile = UserProfile.fromJson('user-1', {
+      'name': 'Ayesha Khan',
+      'email': 'ayesha@example.com',
+      'role': 'customer',
+      'meters': {'meter-1': true},
+      'profilePhoto': 'compressed-base64-photo',
+    });
+    final olderProfile = UserProfile.fromJson('user-2', {'name': 'Ali'});
+
+    expect(profile.profilePhoto, 'compressed-base64-photo');
+    expect(profile.meterIds, ['meter-1']);
+    expect(olderProfile.profilePhoto, isEmpty);
+  });
+
   test('meter without a reading is offline', () {
     final meter = MeterSummary.fromJson('new-meter', {'name': 'New meter'});
 

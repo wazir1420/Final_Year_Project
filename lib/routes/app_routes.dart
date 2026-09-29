@@ -10,6 +10,7 @@ import '../controllers/dashboard_controller.dart';
 import '../controllers/meters_list_controller.dart';
 import '../controllers/login_controller.dart';
 import '../controllers/admin_controller.dart';
+import '../controllers/profile_controller.dart';
 import '../views/analytics_view.dart';
 import '../views/bills_view.dart';
 import '../views/dashboard_view.dart';
@@ -18,6 +19,7 @@ import '../views/ml_prediction_view.dart';
 import '../views/settings_view.dart';
 import '../views/login_view.dart';
 import '../views/admin_panel_view.dart';
+import '../views/profile_view.dart';
 
 class AppRoutes {
   static const splash = '/splash';
@@ -31,6 +33,7 @@ class AppRoutes {
   static const analytics = '/analytics';
   static const bills = '/bills';
   static const settings = '/settings';
+  static const profile = '/profile';
   static const mlPrediction = '/ml-prediction';
 
   static final pages = [
@@ -127,6 +130,15 @@ class AppRoutes {
       name: settings,
       page: () => const SettingsView(),
       binding: SettingsBinding(),
+      transition: Transition.fadeIn,
+    ),
+
+    GetPage(
+      name: profile,
+      page: () => const ProfileView(),
+      binding: BindingsBuilder(() {
+        Get.put(ProfileController());
+      }),
       transition: Transition.fadeIn,
     ),
 

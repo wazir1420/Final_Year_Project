@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/dashboard_controller.dart';
@@ -31,6 +33,7 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
   void didPopNext() {
     // another route was popped and this route is now visible again
     setState(() {});
+    controller.loadProfilePhoto();
   }
 
   @override
@@ -60,6 +63,16 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
 // ── Header ────────────────────────────────────────────────────────────────────
 // ── Header ────────────────────────────────────────────────────────────────────
 class _Header extends GetView<DashboardController> {
+  ImageProvider<Object>? _profilePhoto() {
+    final encoded = controller.profilePhoto.value;
+    if (encoded.isEmpty) return null;
+    try {
+      return MemoryImage(base64Decode(encoded));
+    } on FormatException {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(20, 8, 16, 14),
@@ -112,32 +125,32 @@ class _Header extends GetView<DashboardController> {
               constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             ),
             Tooltip(
-              message: 'Settings',
+              message: 'Profile',
               child: IconButton(
-                onPressed: controller.goToSettings,
+                onPressed: controller.goToProfile,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints.tightFor(
                   width: 40,
                   height: 40,
                 ),
-                icon: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: kBlueTint,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      controller.userInitials,
-                      style: const TextStyle(
-                        color: kBlue,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+                icon: Obx(() {
+                  final photo = _profilePhoto();
+                  return CircleAvatar(
+                    radius: 18,
+                    backgroundColor: kBlueTint,
+                    backgroundImage: photo,
+                    child: photo == null
+                        ? Text(
+                            controller.userInitials,
+                            style: const TextStyle(
+                              color: kBlue,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          )
+                        : null,
+                  );
+                }),
               ),
             ),
           ],

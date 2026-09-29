@@ -13,6 +13,7 @@ class AuthService {
   static const String _refreshUrl =
       'https://securetoken.googleapis.com/v1/token?key=$_apiKey';
   static const String _refreshTokenKey = 'firebase_refresh_token';
+  static const String _userIdKey = 'firebase_user_id';
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   static const String _dbUrl =
@@ -117,7 +118,11 @@ class AuthService {
 
   Future<void> saveSession(AuthSession session) async {
     await _storage.write(key: _refreshTokenKey, value: session.refreshToken);
+    await _storage.write(key: _userIdKey, value: session.uid);
   }
+
+  Future<String> getCurrentUid() async =>
+      await _storage.read(key: _userIdKey) ?? '';
 
   Future<String> getFreshIdToken() async {
     final refreshToken = await _storage.read(key: _refreshTokenKey);
@@ -194,7 +199,10 @@ class AuthService {
     return null;
   }
 
-  Future<void> clearSession() => _storage.delete(key: _refreshTokenKey);
+  Future<void> clearSession() async {
+    await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _userIdKey);
+  }
 
   /// Login hone ke baad user ka record Realtime Database se laata hai —
   /// isi se pata chalta hai ke role kya hai (admin/customer) aur customer
@@ -213,6 +221,21 @@ class AuthService {
       // network error waghera
     }
     return null;
+  }
+
+  Future<void> updateProfilePhoto(String uid, String photoBase64) async {
+    final idToken = await getFreshIdToken();
+    final response = await http
+        .patch(
+          Uri.parse('$_dbUrl/users/$uid.json?auth=$idToken'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'profilePhoto': photoBase64}),
+        )
+        .timeout(const Duration(seconds: 15));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Profile photo save nahi ho saki. Dobara try karein.');
+    }
   }
 }
 
@@ -235,6 +258,7 @@ class UserProfile {
   final String email;
   final String role; // "admin" ya "customer"
   final List<String> meterIds; // customer ke paas jo meters hain
+  final String profilePhoto;
 
   UserProfile({
     required this.uid,
@@ -242,6 +266,7 @@ class UserProfile {
     required this.email,
     required this.role,
     required this.meterIds,
+    required this.profilePhoto,
   });
 
   bool get isAdmin => role == 'admin';
@@ -254,6 +279,7 @@ class UserProfile {
       email: (data['email'] ?? '').toString(),
       role: (data['role'] ?? 'customer').toString(),
       meterIds: metersMap.keys.toList(),
+      profilePhoto: (data['profilePhoto'] ?? '').toString(),
     );
   }
 }
