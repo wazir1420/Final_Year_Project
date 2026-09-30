@@ -268,14 +268,14 @@ class ComparisonBarChart extends StatelessWidget {
 }
 
 class PowerTrendChart extends StatelessWidget {
-  final List<HourlyPoint> data;
-  final double maxKw;
+  final List<TrendPoint> data;
+  final double maxValue;
   final String peakLabel;
 
   const PowerTrendChart({
     super.key,
     required this.data,
-    required this.maxKw,
+    required this.maxValue,
     required this.peakLabel,
   });
 
@@ -284,6 +284,15 @@ class PowerTrendChart extends StatelessWidget {
     if (data.isEmpty) {
       return _emptyShell('analytics_no_trend'.tr);
     }
+
+    // X-axis labels period ke hisaab se: Day → 0h/12h/24h,
+    // Week → Mon/Wed/Fri/Sun, Month → W1/W2/W3...
+    final isDay = data.length == 24;
+    final xLabels = isDay
+        ? ['0h', '12h', '24h']
+        : data.length <= 7
+        ? data.map((p) => p.label).toList()
+        : data.map((p) => p.label).toList();
 
     return _chartShell(
       child: Column(
@@ -307,7 +316,7 @@ class PowerTrendChart extends StatelessWidget {
           SizedBox(
             height: 170,
             child: CustomPaint(
-              painter: _TrendLinePainter(data: data, maxKw: maxKw),
+              painter: _TrendLinePainter(data: data, maxKw: maxValue),
               child: Container(),
             ),
           ),
@@ -315,9 +324,13 @@ class PowerTrendChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('0h', style: TextStyle(fontSize: 10, color: kMuted)),
-              Text('12h', style: TextStyle(fontSize: 10, color: kMuted)),
-              Text('24h', style: TextStyle(fontSize: 10, color: kMuted)),
+              for (final l in xLabels)
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(l, style: TextStyle(fontSize: 10, color: kMuted)),
+                  ),
+                ),
             ],
           ),
         ],
@@ -328,8 +341,13 @@ class PowerTrendChart extends StatelessWidget {
 
 class PeakHoursHeatmap extends StatelessWidget {
   final List<HeatmapCell> cells;
+  final String title;
 
-  const PeakHoursHeatmap({super.key, required this.cells});
+  const PeakHoursHeatmap({
+    super.key,
+    required this.cells,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -338,17 +356,20 @@ class PeakHoursHeatmap extends StatelessWidget {
     }
 
     const hours = [6, 9, 12, 15, 18, 21];
-    // Keys English mein rakhte hain (dummy data isi tarah aata hai); sirf
-    // headers translated hote hain, warna Urdu mein lookup fail ho jata hai.
-    const dayKeys = [
-      'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
-    ];
-    final dayLabels = List.generate(7, (i) => 'weekday_${i + 1}'.tr);
+    // Columns cells se hi derive hote hain (dayKey = column index):
+    // Day → 1 (Aaj), Week → 1..7 (Mon..Sun), Month → 1..5 (W1..W5).
+    // Urdu/English dono mein lookup sahi rehta hai.
+    final columns = <int, String>{};
+    for (final cell in cells) {
+      columns.putIfAbsent(cell.dayKey, () => cell.day);
+    }
+    final colKeys = columns.keys.toList()..sort();
+    final colWidth = colKeys.length <= 3 ? 56.0 : 32.0;
 
-    final map = <int, Map<String, HeatmapCell>>{};
+    final map = <int, Map<int, HeatmapCell>>{};
     for (final cell in cells) {
       map[cell.hour] = map[cell.hour] ?? {};
-      map[cell.hour]![cell.day] = cell;
+      map[cell.hour]![cell.dayKey] = cell;
     }
 
     return _chartShell(
@@ -356,7 +377,7 @@ class PeakHoursHeatmap extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'analytics_peak_hours'.tr,
+            title,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -372,14 +393,14 @@ class PeakHoursHeatmap extends StatelessWidget {
                 Row(
                   children: [
                     const SizedBox(width: 36),
-                    ...dayLabels.map(
-                      (day) => Padding(
+                    ...colKeys.map(
+                      (key) => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: SizedBox(
-                          width: 32,
+                          width: colWidth,
                           child: Center(
                             child: Text(
-                              day,
+                              columns[key]!,
                               style: TextStyle(fontSize: 10, color: kMuted),
                             ),
                           ),
@@ -395,17 +416,18 @@ class PeakHoursHeatmap extends StatelessWidget {
                     child: Row(
                       children: [
                         SizedBox(
-                          width: 36,
+                          width: 44,
                           child: Text(
-                            '$hour:00',
+                            _slotLabel(hour),
                             style: TextStyle(fontSize: 10, color: kMuted),
                           ),
                         ),
-                        ...dayKeys.map((day) {
-                          final intensity = map[hour]?[day]?.intensity ?? 0.0;
+                        ...colKeys.map((key) {
+                          final intensity =
+                              map[hour]?[key]?.intensity ?? 0.0;
                           return Container(
                             margin: const EdgeInsets.symmetric(horizontal: 2),
-                            width: 32,
+                            width: colWidth,
                             height: 32,
                             decoration: BoxDecoration(
                               color: _heatColor(intensity),
@@ -545,13 +567,21 @@ Widget _legendDot(Color color, String label) => Row(
   ],
 );
 
+/// Slot label 12-hour format mein: 6 → "6 AM", 12 → "12 PM",
+/// 15 → "3 PM", 21 → "9 PM"
+String _slotLabel(int hour) {
+  final h12 = hour % 12 == 0 ? 12 : hour % 12;
+  final suffix = hour < 12 ? 'AM' : 'PM';
+  return '$h12 $suffix';
+}
+
 Color _heatColor(double intensity) {
   return Color.lerp(const Color(0xFFF4F6FB), kBlue, intensity) ??
       const Color(0xFFF4F6FB);
 }
 
 class _TrendLinePainter extends CustomPainter {
-  final List<HourlyPoint> data;
+  final List<TrendPoint> data;
   final double maxKw;
 
   _TrendLinePainter({required this.data, required this.maxKw});
@@ -569,9 +599,10 @@ class _TrendLinePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final points = <Offset>[];
-    final horizontalStep = size.width / (data.length - 1);
+    final drawn = <Offset>[]; // sirf hasData points (complete slots)
+    final horizontalStep = data.length > 1 ? size.width / (data.length - 1) : 0.0;
     for (var i = 0; i < data.length; i++) {
-      final value = data[i].kw.clamp(0.0, maxKw);
+      final value = data[i].value.clamp(0.0, maxKw);
       final x = i * horizontalStep;
       final y =
           size.height -
@@ -579,26 +610,28 @@ class _TrendLinePainter extends CustomPainter {
             0.0,
             size.height,
           );
-      points.add(Offset(x, y));
+      final offset = Offset(x, y);
+      points.add(offset);
+      if (data[i].hasData) drawn.add(offset);
     }
 
-    if (points.isEmpty) return;
+    if (drawn.isEmpty) return;
 
-    final path = Path()..moveTo(points.first.dx, points.first.dy);
-    for (var i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
+    final path = Path()..moveTo(drawn.first.dx, drawn.first.dy);
+    for (var i = 1; i < drawn.length; i++) {
+      path.lineTo(drawn[i].dx, drawn[i].dy);
     }
 
     final fillPath = Path.from(path)
-      ..lineTo(points.last.dx, size.height)
-      ..lineTo(points.first.dx, size.height)
+      ..lineTo(drawn.last.dx, size.height)
+      ..lineTo(drawn.first.dx, size.height)
       ..close();
 
     canvas.drawPath(fillPath, fillPaint);
     canvas.drawPath(path, paint);
 
     final dotPaint = Paint()..color = kBlue;
-    for (final point in points) {
+    for (final point in drawn) {
       canvas.drawCircle(point, 3, dotPaint);
     }
   }

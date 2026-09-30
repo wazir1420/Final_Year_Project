@@ -19,14 +19,33 @@ class HourlyPoint {
   const HourlyPoint({required this.hour, required this.kw});
 }
 
+/// Trend chart ka ek point — period ke hisaab se label aur value:
+/// Day → har ghanta ("0h", "6h"...), Week → har din (Mon..Sun),
+/// Month → har hafta (W1..W5).
+/// hasData = false ka matlab slot ka waqt abhi poora nahi hua
+/// (curve sirf guzar chuke slots tak banta hai).
+class TrendPoint {
+  final String label;
+  final double value;
+  final bool hasData;
+
+  const TrendPoint({
+    required this.label,
+    required this.value,
+    this.hasData = true,
+  });
+}
+
 class HeatmapCell {
   final int hour; // row: 6,9,12,15,18,21
-  final String day; // col: "Mon".."Sun"
+  final String day; // col label (translated)
+  final int dayKey; // 1=Mon..7=Sun (language-independent order)
   final double intensity; // 0.0 – 1.0  (raw kWh normalised)
 
   const HeatmapCell({
     required this.hour,
     required this.day,
+    this.dayKey = 0,
     required this.intensity,
   });
 }

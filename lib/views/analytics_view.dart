@@ -124,6 +124,10 @@ class _Body extends GetView<AnalyticsController> {
             ),
           SectionLabel('analytics_summary'.tr),
           _KpiGrid(),
+          SectionLabel('analytics_power_trend'.tr),
+          _PowerTrend(),
+          SectionLabel(_peakSectionTitle(controller.selectedPeriod.value).tr),
+          _PeakHours(title: _peakSectionTitle(controller.selectedPeriod.value).tr),
           SectionLabel('analytics_consumption'.tr),
           _ComparisonChart(),
           SectionLabel('analytics_estimated_cost'.tr),
@@ -187,6 +191,83 @@ class _KpiGrid extends GetView<AnalyticsController> {
       ],
     );
   });
+}
+
+// ── Power trend (period-aware: hours/days/weeks) ─────────────────────────
+class _PowerTrend extends GetView<AnalyticsController> {
+  @override
+  Widget build(BuildContext context) => Obx(() {
+    final data = controller.trendPoints.toList();
+    final dataPoints = data.where((p) => p.hasData).toList();
+    if (data.isEmpty || dataPoints.isEmpty) {
+      // Koi complete slot nahi — data collect ho raha hai (hint dikhe).
+      return _HourlyMissingHint();
+    }
+    final peak = dataPoints.reduce((a, b) => a.value >= b.value ? a : b);
+    final value = peak.value.toStringAsFixed(1);
+    final label = 'analytics_peak_at'.trParams({'point': peak.label});
+    return PowerTrendChart(
+      data: data,
+      maxValue: peak.value <= 0 ? 1.0 : peak.value,
+      peakLabel: '$value kWh · $label',
+    );
+  });
+}
+
+// ── Peak hours heatmap ─────────────────────────────────────────────────
+class _PeakHours extends GetView<AnalyticsController> {
+  final String title;
+
+  const _PeakHours({required this.title});
+
+  @override
+  Widget build(BuildContext context) => Obx(() {
+    final cells = controller.heatmap.toList();
+    if (cells.isEmpty) return _HourlyMissingHint();
+    return PeakHoursHeatmap(cells: cells, title: title);
+  });
+}
+
+/// Peak section ka title period ke hisaab se:
+/// Day → Peak hours, Week → Peak days, Month → Peak weeks
+String _peakSectionTitle(AnalyticsPeriod period) {
+  switch (period) {
+    case AnalyticsPeriod.day:
+      return 'analytics_peak_hours';
+    case AnalyticsPeriod.week:
+      return 'analytics_peak_days';
+    case AnalyticsPeriod.month:
+      return 'analytics_peak_weeks';
+  }
+}
+
+class _HourlyMissingHint extends GetView<AnalyticsController> {
+  const _HourlyMissingHint();
+
+  /// Message period ke hisaab se — kab tak ka wait hai:
+  /// Day → ~1 ghanta, Week → kal (pehla din complete), Month → kuch din
+  String get _message {
+    final when = switch (controller.selectedPeriod.value) {
+      AnalyticsPeriod.day => 'analytics_when_hour'.tr,
+      AnalyticsPeriod.week => 'analytics_when_day'.tr,
+      AnalyticsPeriod.month => 'analytics_when_week'.tr,
+    };
+    return 'analytics_data_collecting'.trParams({'when': when});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kBorder, width: 0.5),
+      ),
+      child: Text(_message, style: TextStyle(color: kMuted, fontSize: 13)),
+    );
+  }
 }
 
 // ── Comparison bar chart ──────────────────────────────────────────────────────

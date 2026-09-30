@@ -124,6 +124,19 @@ class DatedDailyUsage {
   const DatedDailyUsage({required this.date, required this.kwh});
 }
 
+/// Ek ghante ki consumption (kWh). ESP32 har ghanta /meters/{id}/hourly/
+/// {YYYY-MM-DD}/{HH} par likhta hai — is se power-trend aur peak-hours
+/// heatmap bante hain.
+class HourlyUsage {
+  final DateTime hourStart;
+  final double kwh;
+
+  const HourlyUsage({required this.hourStart, required this.kwh});
+
+  int get hour => hourStart.hour;
+  int get weekday => hourStart.weekday;
+}
+
 class MonthlyData {
   final double totalKwh;
   final List<DailyUsage> daily;

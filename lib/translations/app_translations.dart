@@ -104,6 +104,14 @@ class AppTranslations extends Translations {
     'analytics_chart_total': 'Total: Rs. @total',
     'analytics_power_trend': 'Power trend',
     'analytics_peak_hours': 'Peak hours',
+    'analytics_peak_days': 'Peak days',
+    'analytics_peak_weeks': 'Peak weeks',
+    'analytics_peak_at': 'Peak at @point',
+    'analytics_data_collecting':
+        'Data is being collected — this graph will fill automatically as readings come in. Check back @when.',
+    'analytics_when_hour': 'in about an hour',
+    'analytics_when_day': 'tomorrow',
+    'analytics_when_week': 'in a few days',
     'analytics_max_daily_none': 'No readings',
     'analytics_adjustments_missing':
         'FCA and quarterly adjustments are not configured.',
@@ -442,6 +450,14 @@ class AppTranslations extends Translations {
     'analytics_chart_total': 'کل: Rs. @total',
     'analytics_power_trend': 'پاور کا رجحان',
     'analytics_peak_hours': 'پیک اوقات',
+    'analytics_peak_days': 'پیک دن',
+    'analytics_peak_weeks': 'پیک ہفتے',
+    'analytics_peak_at': 'پیک @point',
+    'analytics_data_collecting':
+        'ڈیٹا جمع ہو رہا ہے — ریڈنگز آنے کے ساتھ یہ گراف خود بخود بھرے گا۔ @when دوبارہ دیکھیں۔',
+    'analytics_when_hour': 'تقریباً ایک گھنٹے بعد',
+    'analytics_when_day': 'کل',
+    'analytics_when_week': 'چند دنوں بعد',
     'analytics_max_daily_none': 'کوئی ریڈنگ نہیں',
     'analytics_adjustments_missing': 'FCA اور سہ ماہی ایڈجسٹمنٹ سیٹ نہیں ہیں۔',
 

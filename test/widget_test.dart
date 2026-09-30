@@ -59,6 +59,38 @@ void main() {
     expect(usage.map((entry) => entry.kwh), [3.0, 5.0, 0.0]);
   });
 
+  test('Firebase hourly history becomes per-hour kWh deltas', () {
+    final hourly = FirebaseHistoryService.parseHourlyUsage({
+      '2026-09-30': {'20': 0.10, '21': 0.21, '22': 0.35},
+      '2026-09-29': {'23': 0.05},
+    });
+
+    // 29/23h (0.05) → 30/20h (0.10): 24h gap wali reading bhi ek delta hai.
+    expect(hourly.length, 3);
+    expect(hourly.first.hourStart, DateTime(2026, 9, 30, 20));
+    expect(hourly.first.kwh, closeTo(0.05, 0.0001));
+    expect(hourly[1].kwh, closeTo(0.11, 0.0001));
+    expect(hourly[2].kwh, closeTo(0.14, 0.0001));
+    expect(hourly.last.hour, 22);
+  });
+
+  test('Hourly parser handles h-prefixed map AND array formats', () {
+    // ESP32 "h" prefix ke sath map bhejta hai; numeric keys wala purana
+    // data Firebase array bana deta hai — dono parse hone chahiye.
+    final hourly = FirebaseHistoryService.parseHourlyUsage({
+      '2026-10-01': [0.22, 0.23], // Firebase array format
+      '2026-10-02': {'h0': 0.30, 'h1': 0.35}, // h-prefix map
+    });
+
+    // Oct 1: 00:00 (0.22) aur 01:00 (0.23); Oct 2: 00:00 (0.30), 01:00 (0.35)
+    expect(hourly.length, 3);
+    expect(hourly[0].hourStart, DateTime(2026, 10, 1, 1));
+    expect(hourly[0].kwh, closeTo(0.01, 0.0001));
+    expect(hourly[1].hourStart, DateTime(2026, 10, 2, 0));
+    expect(hourly[1].kwh, closeTo(0.07, 0.0001));
+    expect(hourly[2].kwh, closeTo(0.05, 0.0001));
+  });
+
   // ── K-Electric: asal bills (Sanc Load 4 kW, tariff A1-R) ────────────────
   // fcaUnits = bill par FCA line ke saamne likhe units (2 mahine pehle ke).
   group('KE calculator matches real K-Electric bills', () {
