@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/meter_data_model.dart';
 
-/// Firebase Realtime Database se live meter data padhta hai.
-/// DummyDataService ki jagah use hoga jab real hardware/ESP32 connected ho.
+/// Firebase Realtime Database se live meter data padhta hai (ESP32 se).
 ///
 /// Setup: pubspec.yaml mein 'http: ^1.2.0' dependency add karein.
 class FirebaseMeterService {
