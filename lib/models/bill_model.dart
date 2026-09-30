@@ -15,8 +15,8 @@ class BillEstimate {
 
   factory BillEstimate.empty() => const BillEstimate(
     unitsUsed: 0,
-    ratePerKwh: 24.0,
-    fixedCharge: 150.0,
+    ratePerKwh: 28.91,
+    fixedCharge: 0,
     taxes: 0,
     total: 0,
   );

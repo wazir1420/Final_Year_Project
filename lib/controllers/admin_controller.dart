@@ -81,7 +81,7 @@ class AdminController extends GetxController {
       emailError.value = '';
       return;
     }
-    emailError.value = 'Enter a valid Gmail address';
+    emailError.value = 'admin_error_valid_gmail'.tr;
   }
 
   void prepareCustomerFromRequest(MeterRequest request) {
@@ -98,7 +98,7 @@ class AdminController extends GetxController {
       return true;
     } catch (e) {
       Get.snackbar(
-        'Delete failed',
+        'admin_delete_failed'.tr,
         e.toString().replaceFirst('Exception: ', ''),
       );
       return false;
@@ -114,15 +114,15 @@ class AdminController extends GetxController {
 
     emailError.value = '';
     if (email.isEmpty) {
-      emailError.value = 'Gmail address is required';
+      emailError.value = 'admin_error_gmail_required'.tr;
       return false;
     }
     if (!AuthService.isValidGmail(email)) {
-      emailError.value = 'Enter a valid Gmail address';
+      emailError.value = 'admin_error_valid_gmail'.tr;
       return false;
     }
     if (name.isEmpty || password.isEmpty || meterId.isEmpty) {
-      formError.value = 'Naam, password, aur meter ID zaroori hain';
+      formError.value = 'admin_error_required_fields'.tr;
       return false;
     }
 
@@ -156,9 +156,9 @@ class AdminController extends GetxController {
     } catch (e) {
       final error = e.toString().replaceFirst('Exception: ', '');
       if (error.toLowerCase().contains('registered')) {
-        emailError.value = 'An account with this email already exists';
+        emailError.value = 'admin_error_email_exists'.tr;
       } else if (error.toLowerCase().contains('valid email')) {
-        emailError.value = 'Enter a valid Gmail address';
+        emailError.value = 'admin_error_valid_gmail'.tr;
       } else {
         formError.value = error;
       }
@@ -183,10 +183,7 @@ class AdminController extends GetxController {
 
   Future<void> sendCustomerPasswordReset(AdminCustomer customer) async {
     if (customer.email.trim().isEmpty) {
-      Get.snackbar(
-        'Reset email not sent',
-        'This customer has no email address.',
-      );
+      Get.snackbar('admin_reset_not_sent'.tr, 'admin_no_email'.tr);
       return;
     }
 
@@ -194,12 +191,12 @@ class AdminController extends GetxController {
     try {
       await _service.sendPasswordResetEmail(customer.email.trim());
       Get.snackbar(
-        'Reset request accepted',
-        'Firebase accepted the request for ${customer.email}. Check Spam/Promotions if it is not in the inbox.',
+        'admin_reset_accepted'.tr,
+        'admin_reset_accepted_msg'.trParams({'email': customer.email}),
       );
     } catch (e) {
       Get.snackbar(
-        'Reset email not sent',
+        'admin_reset_not_sent'.tr,
         e.toString().replaceFirst('Exception: ', ''),
       );
     } finally {
@@ -210,7 +207,7 @@ class AdminController extends GetxController {
   Future<bool> updateCustomerName(AdminCustomer customer, String name) async {
     final updatedName = name.trim();
     if (updatedName.isEmpty) {
-      Get.snackbar('Update failed', 'Customer name cannot be empty.');
+      Get.snackbar('admin_update_failed'.tr, 'admin_name_empty'.tr);
       return false;
     }
 
@@ -220,12 +217,12 @@ class AdminController extends GetxController {
         customerUid: customer.uid,
         name: updatedName,
       );
-      Get.snackbar('Customer updated', 'Customer name has been saved.');
+      Get.snackbar('admin_customer_updated'.tr, 'admin_name_saved'.tr);
       await loadData();
       return true;
     } catch (e) {
       Get.snackbar(
-        'Update failed',
+        'admin_update_failed'.tr,
         e.toString().replaceFirst('Exception: ', ''),
       );
       return false;
@@ -244,13 +241,13 @@ class AdminController extends GetxController {
       );
       customers.removeWhere((item) => item.uid == customer.uid);
       Get.snackbar(
-        'Customer deleted',
-        '${customer.name} no longer has access. Meter history was preserved.',
+        'admin_customer_deleted'.tr,
+        'admin_customer_deleted_msg'.trParams({'name': customer.name}),
       );
       return true;
     } catch (e) {
       Get.snackbar(
-        'Delete failed',
+        'admin_delete_failed'.tr,
         e.toString().replaceFirst('Exception: ', ''),
       );
       return false;

@@ -73,7 +73,7 @@ class ProfileController extends GetxController {
 
       final uid = await _authService.getCurrentUid();
       if (uid.isEmpty) {
-        throw Exception('Session expire ho gayi. Dobara login karein.');
+        throw Exception('profile_error_session_expired'.tr);
       }
 
       isUploading.value = true;
@@ -83,7 +83,7 @@ class ProfileController extends GetxController {
       Get.back(result: photoBase64);
     } catch (error) {
       Get.snackbar(
-        'Photo upload nahi hui',
+        'profile_error_upload_title'.tr,
         error.toString().replaceFirst('Exception: ', ''),
       );
     } finally {

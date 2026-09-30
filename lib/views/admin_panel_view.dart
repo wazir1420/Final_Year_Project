@@ -16,11 +16,11 @@ class AdminPanelView extends GetView<AdminController> {
       appBar: AppBar(
         backgroundColor: kCard,
         elevation: 0,
-        title: const Text('Admin panel'),
+        title: Text('admin_title'.tr),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Logout',
+            tooltip: 'admin_logout'.tr,
             onPressed: () => _confirmLogout(context),
           ),
         ],
@@ -39,7 +39,7 @@ class AdminPanelView extends GetView<AdminController> {
                 totalMeters: controller.totalMeters,
               ),
               const SizedBox(height: 20),
-              const SectionLabel('Customers'),
+              SectionLabel('admin_customers'.tr),
               _SearchField(controller: controller.searchController),
               const SizedBox(height: 10),
               Obx(() {
@@ -48,7 +48,7 @@ class AdminPanelView extends GetView<AdminController> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
-                      'Koi customer nahi mila',
+                      'admin_no_customers'.tr,
                       style: TextStyle(color: kMuted),
                       textAlign: TextAlign.center,
                     ),
@@ -81,7 +81,7 @@ class AdminPanelView extends GetView<AdminController> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SectionLabel('Pending requests'),
+                    SectionLabel('admin_pending_requests'.tr),
                     ...controller.pendingRequests.map(
                       (r) => _RequestTile(
                         request: r,
@@ -103,7 +103,7 @@ class AdminPanelView extends GetView<AdminController> {
                     controller.loadData();
                   },
                   icon: const Icon(Icons.person_add_alt_1_rounded),
-                  label: const Text('Add customer'),
+                  label: Text('admin_add_customer'.tr),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kBlue,
                     foregroundColor: Colors.white,
@@ -126,12 +126,12 @@ class AdminPanelView extends GetView<AdminController> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Kya aap logout karna chahte hain?'),
+        title: Text('admin_logout'.tr),
+        content: Text('admin_logout_confirm'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr),
           ),
           TextButton(
             onPressed: () async {
@@ -139,7 +139,7 @@ class AdminPanelView extends GetView<AdminController> {
               await AuthService().clearSession();
               if (context.mounted) Get.offAllNamed(AppRoutes.login);
             },
-            child: const Text('Logout'),
+            child: Text('admin_logout'.tr),
           ),
         ],
       ),
@@ -152,7 +152,9 @@ class AdminPanelView extends GetView<AdminController> {
 
     Get.dialog(
       AlertDialog(
-        title: Text('${request.customerName} ko meter dein'),
+        title: Text(
+          'admin_fulfil_title'.trParams({'name': request.customerName}),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -163,14 +165,14 @@ class AdminPanelView extends GetView<AdminController> {
             const SizedBox(height: 10),
             TextField(
               controller: meterNameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Meter naam (optional)',
+              decoration: InputDecoration(
+                labelText: 'admin_meter_name_optional'.tr,
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
           TextButton(
             onPressed: () async {
               final meterId = meterIdCtrl.text.trim();
@@ -182,7 +184,7 @@ class AdminPanelView extends GetView<AdminController> {
                 meterNameCtrl.text.trim(),
               );
             },
-            child: const Text('Confirm'),
+            child: Text('admin_confirm'.tr),
           ),
         ],
       ),
@@ -198,18 +200,18 @@ class AdminPanelView extends GetView<AdminController> {
   Future<void> _confirmDeleteRequest(MeterRequest request) async {
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('Delete request?'),
+        title: Text('admin_delete_request_title'.tr),
         content: Text(
-          'Delete the pending request from ${request.customerName}?',
+          'admin_delete_request_msg'.trParams({'name': request.customerName}),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr),
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
-            child: const Text('Delete'),
+            child: Text('common_delete'.tr),
           ),
         ],
       ),
@@ -217,7 +219,10 @@ class AdminPanelView extends GetView<AdminController> {
 
     if (confirmed == true &&
         await controller.deletePendingRequest(request.id)) {
-      Get.snackbar('Request deleted', 'The pending request was removed.');
+      Get.snackbar(
+        'admin_request_deleted'.tr,
+        'admin_request_deleted_msg'.tr,
+      );
     }
   }
 }
@@ -240,10 +245,10 @@ class _StatsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Total customers',
-                style: TextStyle(fontSize: 12, color: Color(0xB3FFFFFF)),
-              ),
+      Text(
+        'admin_total_customers'.tr,
+        style: const TextStyle(fontSize: 12, color: Color(0xB3FFFFFF)),
+      ),
               const SizedBox(height: 6),
               Text(
                 '$totalCustomers',
@@ -260,10 +265,10 @@ class _StatsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Total meters',
-                style: TextStyle(fontSize: 12, color: Color(0xB3FFFFFF)),
-              ),
+      Text(
+        'admin_total_meters'.tr,
+        style: const TextStyle(fontSize: 12, color: Color(0xB3FFFFFF)),
+      ),
               const SizedBox(height: 6),
               Text(
                 '$totalMeters',
@@ -289,7 +294,7 @@ class _SearchField extends StatelessWidget {
   Widget build(BuildContext context) => TextField(
     controller: controller,
     decoration: InputDecoration(
-      hintText: 'Search customer by name',
+      hintText: 'admin_search_hint'.tr,
       hintStyle: TextStyle(color: kMuted, fontSize: 13),
       prefixIcon: Icon(Icons.search_rounded, color: kMuted, size: 20),
       filled: true,
@@ -415,8 +420,8 @@ class _CustomerTileState extends State<_CustomerTile> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${widget.customer.meterIds.length} meter${widget.customer.meterIds.length == 1 ? '' : 's'} · '
-                    '${widget.customer.isOnline ? 'online' : 'offline'}',
+                    '${'admin_meter_count'.trParams({'count': '${widget.customer.meterIds.length}'})} · '
+                    '${widget.customer.isOnline ? 'admin_status_online'.tr : 'admin_status_offline'.tr}',
                     style: TextStyle(fontSize: 12, color: kMuted),
                   ),
                 ],
@@ -426,7 +431,9 @@ class _CustomerTileState extends State<_CustomerTile> {
               onPressed: widget.isBusy
                   ? null
                   : () => setState(() => _isEditing = !_isEditing),
-              tooltip: _isEditing ? 'Close customer editor' : 'Edit customer',
+              tooltip: _isEditing
+                  ? 'admin_close_editor_tooltip'.tr
+                  : 'admin_edit_tooltip'.tr,
               icon: widget.isBusy
                   ? const SizedBox.square(
                       dimension: 20,
@@ -453,7 +460,7 @@ class _CustomerTileState extends State<_CustomerTile> {
           const SizedBox(height: 12),
           TextFormField(
             initialValue: widget.customer.meterIds.isEmpty
-                ? 'No meters assigned'
+                ? 'admin_no_meters_assigned'.tr
                 : widget.customer.meterIds.join(', '),
             readOnly: true,
             maxLines: 2,
@@ -471,7 +478,9 @@ class _CustomerTileState extends State<_CustomerTile> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Permanently delete ${widget.customer.name}? Their account access will be removed. Meter data will be preserved.',
+                    'admin_delete_confirm_msg'.trParams({
+                      'name': widget.customer.name,
+                    }),
                     style: const TextStyle(
                       color: Color(0xFF791F1F),
                       fontSize: 13,
@@ -485,7 +494,7 @@ class _CustomerTileState extends State<_CustomerTile> {
                         onPressed: widget.isBusy
                             ? null
                             : () => setState(() => _confirmingDelete = false),
-                        child: const Text('Keep customer'),
+                        child: Text('admin_keep_customer'.tr),
                       ),
                       const SizedBox(width: 8),
                       TextButton.icon(
@@ -501,7 +510,7 @@ class _CustomerTileState extends State<_CustomerTile> {
                                 ),
                               )
                             : const Icon(Icons.delete_forever_outlined),
-                        label: const Text('Delete permanently'),
+                        label: Text('admin_delete_permanent'.tr),
                       ),
                     ],
                   ),
@@ -519,7 +528,7 @@ class _CustomerTileState extends State<_CustomerTile> {
                   foregroundColor: const Color(0xFFB42318),
                 ),
                 icon: const Icon(Icons.delete_outline_rounded),
-                label: const Text('Delete customer'),
+                label: Text('admin_delete_customer'.tr),
               ),
             ),
           Wrap(
@@ -530,16 +539,16 @@ class _CustomerTileState extends State<_CustomerTile> {
               TextButton.icon(
                 onPressed: widget.isBusy ? null : widget.onReset,
                 icon: const Icon(Icons.lock_reset_rounded),
-                label: const Text('Send password reset email'),
+                label: Text('admin_send_reset'.tr),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(onPressed: _cancel, child: const Text('Cancel')),
+                  TextButton(onPressed: _cancel, child: Text('cancel'.tr)),
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: widget.isBusy ? null : _save,
-                    child: const Text('Save'),
+                    child: Text('common_save'.tr),
                   ),
                 ],
               ),
@@ -594,8 +603,8 @@ class _RequestTile extends StatelessWidget {
               ],
               const SizedBox(height: 2),
               if (request.requestType == 'account_access')
-                const Text(
-                  'Account access request',
+                Text(
+                  'admin_account_access_request'.tr,
                   style: TextStyle(fontSize: 12, color: kBlue),
                 ),
               const SizedBox(height: 2),
@@ -614,7 +623,10 @@ class _RequestTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            child: const Text('Fulfil', style: TextStyle(fontSize: 12)),
+            child: Text(
+              'admin_fulfil'.tr,
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
         if (request.requestType == 'account_access')
           ElevatedButton(
@@ -627,11 +639,14 @@ class _RequestTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            child: const Text('Add', style: TextStyle(fontSize: 12)),
+            child: Text(
+              'common_add'.tr,
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
         IconButton(
           onPressed: onDelete,
-          tooltip: 'Delete request',
+          tooltip: 'admin_delete_request_tooltip'.tr,
           icon: Icon(Icons.delete_outline_rounded, color: kMuted),
         ),
       ],

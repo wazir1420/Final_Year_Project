@@ -88,8 +88,8 @@ class _LiveBadgeState extends State<LiveBadge>
         ? const Color(0xFF6EE7B7)
         : const Color(0xFFF3B4B4);
     final String label = widget.isOnline
-        ? 'Live · updating every 2s'
-        : 'Meter offline';
+        ? 'live_updating'.tr
+        : 'meter_offline'.tr;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -164,8 +164,8 @@ class PowerHeroCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Active Power',
+        Text(
+          'active_power'.tr,
           style: TextStyle(fontSize: 12, color: Color(0x99FFFFFF)),
         ),
         const SizedBox(height: 4),
@@ -198,10 +198,13 @@ class PowerHeroCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _MiniStat('${avgVoltage.toStringAsFixed(1)} V', 'Avg Voltage'),
-            _MiniStat('${totalCurrent.toStringAsFixed(1)} A', 'Total Current'),
-            _MiniStat(powerFactor.toStringAsFixed(2), 'Power Factor'),
-            _MiniStat('${frequency.toStringAsFixed(2)} Hz', 'Frequency'),
+            _MiniStat('${avgVoltage.toStringAsFixed(1)} V', 'avg_voltage'.tr),
+            _MiniStat(
+              '${totalCurrent.toStringAsFixed(1)} A',
+              'total_current'.tr,
+            ),
+            _MiniStat(powerFactor.toStringAsFixed(2), 'power_factor'.tr),
+            _MiniStat('${frequency.toStringAsFixed(2)} Hz', 'frequency'.tr),
           ],
         ),
       ],
@@ -377,7 +380,7 @@ class DailyBarChart extends StatelessWidget {
       return _shell(
         child: Center(
           child: Text(
-            'No data yet',
+            'no_data_yet'.tr,
             style: TextStyle(color: kMuted, fontSize: 13),
           ),
         ),
@@ -394,7 +397,7 @@ class DailyBarChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Daily usage — ${_monthName(DateTime.now().month)} ${DateTime.now().year}',
+            '${'daily_usage'.tr} — ${_monthName(DateTime.now().month)} ${DateTime.now().year}',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -472,21 +475,7 @@ class DailyBarChart extends StatelessWidget {
     child: child,
   );
 
-  String _monthName(int m) => const [
-    '',
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ][m];
+  String _monthName(int m) => 'month_$m'.tr;
 }
 
 // ── Bill estimate card ────────────────────────────────────────────────────────
@@ -510,11 +499,11 @@ class BillEstimateCard extends StatelessWidget {
     ),
     child: Column(
       children: [
-        _Row('Units used', units),
-        _Row('Rate per kWh', rate),
-        _Row('Fixed charges', fixed),
-        _Row('Taxes (17%)', taxes),
-        _Row('Estimated total', total, isTotal: true),
+        _Row('units_used'.tr, units),
+        _Row('rate_per_kwh'.tr, rate),
+        _Row('other_ke_charges'.tr, fixed),
+        _Row('taxes_duties'.tr, taxes),
+        _Row('estimated_total'.tr, total, isTotal: true),
       ],
     ),
   );
@@ -587,8 +576,8 @@ class MlPredictionBadge extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'ML prediction — next month',
+                Text(
+                  'ml_prediction'.tr,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -597,7 +586,7 @@ class MlPredictionBadge extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Estimated: $predictedBill  ($changeLabel)',
+                  '${'estimated'.tr}: $predictedBill  ($changeLabel)',
                   style: const TextStyle(fontSize: 11, color: kIndigoMid),
                 ),
               ],

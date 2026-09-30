@@ -34,6 +34,7 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
     // another route was popped and this route is now visible again
     setState(() {});
     controller.loadProfilePhoto();
+    controller.loadTariffProfile();
   }
 
   @override
@@ -61,7 +62,6 @@ class _DashboardViewState extends State<DashboardView> with RouteAware {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
-// ── Header ────────────────────────────────────────────────────────────────────
 class _Header extends GetView<DashboardController> {
   ImageProvider<Object>? _profilePhoto() {
     final encoded = controller.profilePhoto.value;
@@ -87,9 +87,14 @@ class _Header extends GetView<DashboardController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Good morning',
-                style: TextStyle(fontSize: 13, color: kMuted),
+              // Pehle 2 minute "Welcome, <naam>", phir meter ka naam.
+              Obx(
+                () => Text(
+                  controller.headerSubtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: kMuted),
+                ),
               ),
               const SizedBox(height: 6),
               RichText(
@@ -120,12 +125,12 @@ class _Header extends GetView<DashboardController> {
             IconButton(
               icon: Icon(Icons.refresh_rounded, color: kMuted, size: 20),
               onPressed: controller.refreshData,
-              tooltip: 'Refresh',
+              tooltip: 'refresh'.tr,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints.tightFor(width: 32, height: 32),
             ),
             Tooltip(
-              message: 'Profile',
+              message: 'profile'.tr,
               child: IconButton(
                 onPressed: controller.goToProfile,
                 padding: EdgeInsets.zero,
@@ -172,14 +177,14 @@ class _Body extends GetView<DashboardController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionLabel('Total consumption'),
+              SectionLabel('total_consumption'.tr),
               _PowerCard(),
-              const SectionLabel('Phase parameters'),
+              SectionLabel('phase_parameters'.tr),
               _PhaseGrid(),
-              const SectionLabel('This month'),
+              SectionLabel('this_month'.tr),
               _BarChart(),
               const SizedBox(height: 10),
-              const SectionLabel('Bill estimate'),
+              SectionLabel('bill_estimate'.tr),
               _BillCard(),
               const SizedBox(height: 10),
               _MlBadge(),
@@ -224,7 +229,7 @@ class _PhaseGrid extends GetView<DashboardController> {
             icon: Icons.bolt_rounded,
             iconBg: kBlueTint,
             iconColor: kBlue,
-            label: 'Voltage',
+            label: 'voltage'.tr,
             value: m.avgVoltage.toStringAsFixed(0),
             unit: 'V',
             l1: m.voltageL1,
@@ -240,7 +245,7 @@ class _PhaseGrid extends GetView<DashboardController> {
             icon: Icons.electric_meter_rounded,
             iconBg: kAmberTint,
             iconColor: kAmber,
-            label: 'Current',
+            label: 'current'.tr,
             value: m.totalCurrent.toStringAsFixed(1),
             unit: 'A',
             l1: m.currentL1,
@@ -267,12 +272,26 @@ class _BillCard extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) => Obx(() {
     final b = controller.bill.value;
-    return BillEstimateCard(
-      units: b.formattedUnits,
-      rate: b.formattedRate,
-      fixed: b.formattedFixed,
-      taxes: b.formattedTaxes,
-      total: b.formattedTotal,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        BillEstimateCard(
+          units: b.formattedUnits,
+          rate: b.formattedRate,
+          fixed: b.formattedFixed,
+          taxes: b.formattedTaxes,
+          total: b.formattedTotal,
+        ),
+        if (!controller.hasMonthlyAdjustments)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: TextButton.icon(
+              onPressed: controller.goToBills,
+              icon: const Icon(Icons.info_outline_rounded, size: 16),
+              label: Text('fca_not_set'.tr),
+            ),
+          ),
+      ],
     );
   });
 }
@@ -555,25 +574,25 @@ class _BottomNav extends GetView<DashboardController> {
             children: [
               _NavItem(
                 Icons.dashboard_rounded,
-                'Dashboard',
+                'nav_dashboard'.tr,
                 selected == 0,
                 () => controller.selectTab(0),
               ),
               _NavItem(
                 Icons.show_chart_rounded,
-                'Analytics',
+                'nav_analytics'.tr,
                 selected == 1,
                 controller.goToAnalytics,
               ),
               _NavItem(
                 Icons.receipt_long_rounded,
-                'Bills',
+                'nav_bills'.tr,
                 selected == 2,
                 controller.goToBills,
               ),
               _NavItem(
                 Icons.settings_rounded,
-                'Settings',
+                'nav_settings'.tr,
                 selected == 3,
                 controller.goToSettings,
               ),

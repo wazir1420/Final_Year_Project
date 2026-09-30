@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class MeterData {
   final String meterId; // NEW
   final String meterName; // NEW
@@ -71,9 +73,10 @@ class MeterData {
 
   bool isPhaseConnected(int phase) => phase <= connectedPhases;
 
-  /// Short label for display, e.g. "Main line connected" or "Three-phase".
-  String get phaseStatusLabel =>
-      connectedPhases >= 3 ? 'Three-phase' : 'Main line connected';
+  /// Short label for display — chuni hui zubaan ke mutabiq.
+  String get phaseStatusLabel => connectedPhases >= 3
+      ? 'phase_status_three'.tr
+      : 'phase_status_single'.tr;
 
   // ── Firebase Realtime Database factory ──────────────────────────────────────
   factory MeterData.fromFirebase(Map<dynamic, dynamic> m) {
@@ -112,6 +115,13 @@ class DailyUsage {
   final int day;
   final double kwh;
   const DailyUsage({required this.day, required this.kwh});
+}
+
+class DatedDailyUsage {
+  final DateTime date;
+  final double kwh;
+
+  const DatedDailyUsage({required this.date, required this.kwh});
 }
 
 class MonthlyData {

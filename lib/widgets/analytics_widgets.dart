@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/analytics_model.dart';
 import 'dashboard_widgets.dart'
     show kSurface, kBorder, kCard, kPrimary, kMuted, kBlue;
@@ -45,9 +46,19 @@ class PeriodTabBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _PeriodTab('Day', selected == 'Day', onDay),
-          _PeriodTab('Week', selected == 'Week', onWeek),
-          _PeriodTab('Month', selected == 'Month', onMonth),
+          _PeriodTab('day', 'analytics_period_day'.tr, selected == 'day', onDay),
+          _PeriodTab(
+            'week',
+            'analytics_period_week'.tr,
+            selected == 'week',
+            onWeek,
+          ),
+          _PeriodTab(
+            'month',
+            'analytics_period_month'.tr,
+            selected == 'month',
+            onMonth,
+          ),
         ],
       ),
     );
@@ -55,11 +66,12 @@ class PeriodTabBar extends StatelessWidget {
 }
 
 class _PeriodTab extends StatelessWidget {
+  final String keyId;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _PeriodTab(this.label, this.isSelected, this.onTap);
+  const _PeriodTab(this.keyId, this.label, this.isSelected, this.onTap);
 
   @override
   Widget build(BuildContext context) {
@@ -119,10 +131,22 @@ class KpiCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 12, color: kMuted)),
+          // Urdu (Nastaliq/fallback) glyphs Latin se lambe hote hain, is liye
+          // fixed-height card mein text ko flexible rakha hai — warna
+          // "bottom overflowed by 2px" jaisi stripes Urdu mein aa jati hain.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: kMuted),
+            ),
+          ),
           const SizedBox(height: 6),
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -130,7 +154,14 @@ class KpiCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(delta, style: TextStyle(fontSize: 12, color: deltaColor)),
+          Flexible(
+            child: Text(
+              delta,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 12, color: deltaColor),
+            ),
+          ),
         ],
       ),
     );
@@ -152,7 +183,7 @@ class ComparisonBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return _emptyShell('No consumption data available');
+      return _emptyShell('analytics_no_consumption'.tr);
     }
 
     return _chartShell(
@@ -174,11 +205,15 @@ class ComparisonBarChart extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: data.map((entry) {
                 final currentHeight = maxKwh > 0
-                    ? (entry.kwh / maxKwh).clamp(0.05, 1.0)
-                    : 0.05;
+                    ? (entry.kwh > 0
+                          ? (entry.kwh / maxKwh).clamp(0.05, 1.0)
+                          : 0.0)
+                    : 0.0;
                 final previousHeight = maxKwh > 0
-                    ? (entry.prevKwh / maxKwh).clamp(0.05, 1.0)
-                    : 0.05;
+                    ? (entry.prevKwh > 0
+                          ? (entry.prevKwh / maxKwh).clamp(0.05, 1.0)
+                          : 0.0)
+                    : 0.0;
                 const barMaxHeight = 64.0;
                 return Expanded(
                   child: Padding(
@@ -219,8 +254,11 @@ class ComparisonBarChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _legendDot(kBlue, 'This period'),
-              _legendDot(kMuted.withValues(alpha: 0.65), 'Previous period'),
+              _legendDot(kBlue, 'analytics_legend_current'.tr),
+              _legendDot(
+                kMuted.withValues(alpha: 0.65),
+                'analytics_legend_previous'.tr,
+              ),
             ],
           ),
         ],
@@ -244,7 +282,7 @@ class PowerTrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return _emptyShell('No trend data available');
+      return _emptyShell('analytics_no_trend'.tr);
     }
 
     return _chartShell(
@@ -255,7 +293,7 @@ class PowerTrendChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Power trend',
+                'analytics_power_trend'.tr,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -296,11 +334,16 @@ class PeakHoursHeatmap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (cells.isEmpty) {
-      return _emptyShell('No heatmap data available');
+      return _emptyShell('analytics_no_heatmap'.tr);
     }
 
     const hours = [6, 9, 12, 15, 18, 21];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    // Keys English mein rakhte hain (dummy data isi tarah aata hai); sirf
+    // headers translated hote hain, warna Urdu mein lookup fail ho jata hai.
+    const dayKeys = [
+      'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+    ];
+    final dayLabels = List.generate(7, (i) => 'weekday_${i + 1}'.tr);
 
     final map = <int, Map<String, HeatmapCell>>{};
     for (final cell in cells) {
@@ -313,7 +356,7 @@ class PeakHoursHeatmap extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Peak hours',
+            'analytics_peak_hours'.tr,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -329,7 +372,7 @@ class PeakHoursHeatmap extends StatelessWidget {
                 Row(
                   children: [
                     const SizedBox(width: 36),
-                    ...days.map(
+                    ...dayLabels.map(
                       (day) => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: SizedBox(
@@ -358,7 +401,7 @@ class PeakHoursHeatmap extends StatelessWidget {
                             style: TextStyle(fontSize: 10, color: kMuted),
                           ),
                         ),
-                        ...days.map((day) {
+                        ...dayKeys.map((day) {
                           final intensity = map[hour]?[day]?.intensity ?? 0.0;
                           return Container(
                             margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -398,7 +441,7 @@ class CostBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return _emptyShell('No cost data available');
+      return _emptyShell('analytics_no_cost'.tr);
     }
 
     return _chartShell(
@@ -409,7 +452,7 @@ class CostBarChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Cost',
+                'analytics_chart_cost'.tr,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -417,7 +460,9 @@ class CostBarChart extends StatelessWidget {
                 ),
               ),
               Text(
-                'Total: Rs. ${totalCost.toStringAsFixed(0)}',
+                'analytics_chart_total'.trParams({
+                  'total': totalCost.toStringAsFixed(0),
+                }),
                 style: TextStyle(fontSize: 11, color: kMuted),
               ),
             ],
@@ -428,9 +473,9 @@ class CostBarChart extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: data.map((entry) {
-                final barHeight = maxCost > 0
+                final barHeight = maxCost > 0 && entry.costRs > 0
                     ? (entry.costRs / maxCost).clamp(0.05, 1.0)
-                    : 0.05;
+                    : 0.0;
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 3),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dashboard_controller.dart';
 import 'theme_controller.dart';
+import 'language_controller.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_meters_list_service.dart';
@@ -19,7 +20,7 @@ class SettingsController extends GetxController {
   final dailySummary = false.obs;
 
   // Meter & connection
-  final meterModel = 'Loading...'.obs;
+  final meterModel = ''.obs;
   final isFirebaseConnected = false.obs;
   final AuthService _authService = AuthService();
   final FirebaseMetersListService _metersService = FirebaseMetersListService();
@@ -27,7 +28,9 @@ class SettingsController extends GetxController {
 
   // App preferences
   final isDarkMode = false.obs;
-  final language = 'English'.obs;
+  static const String _englishLabel = 'English';
+  static const String _urduLabel = 'اردو';
+  final language = _englishLabel.obs;
   final currency = 'PKR'.obs;
 
   @override
@@ -59,6 +62,12 @@ class SettingsController extends GetxController {
         ? Get.find<ThemeController>()
         : Get.put(ThemeController());
     isDarkMode.value = themeCtrl.isDark;
+    if (Get.isRegistered<LanguageController>()) {
+      language.value = Get.find<LanguageController>().isUrdu
+          ? _urduLabel
+          : _englishLabel;
+    }
+    meterModel.value = 'loading'.tr;
     _loadMeterModel();
   }
 
@@ -118,7 +127,7 @@ class SettingsController extends GetxController {
   Future<void> _loadMeterModel() async {
     final meters = await _metersService.fetchOnce(_assignedMeterIds);
     meterModel.value = meters.isEmpty
-        ? 'No meter found'
+        ? 'no_meter_found'.tr
         : meters.map((meter) => meter.name).join(', ');
   }
 
@@ -128,15 +137,18 @@ class SettingsController extends GetxController {
 
   void selectLanguage() {
     _showPicker(
-      title: 'Language',
-      options: const ['English', 'Urdu'],
+      title: 'language'.tr,
+      options: const [_englishLabel, _urduLabel],
       current: language,
+      onSelected: (option) => Get.find<LanguageController>().setLanguage(
+        option == _urduLabel ? 'ur' : 'en',
+      ),
     );
   }
 
   void selectCurrency() {
     _showPicker(
-      title: 'Currency',
+      title: 'currency'.tr,
       options: const ['PKR', 'USD'],
       current: currency,
     );
@@ -146,6 +158,7 @@ class SettingsController extends GetxController {
     required String title,
     required List<String> options,
     required RxString current,
+    void Function(String option)? onSelected,
   }) {
     Get.bottomSheet(
       Container(
@@ -175,6 +188,7 @@ class SettingsController extends GetxController {
                     : null,
                 onTap: () {
                   current.value = option;
+                  onSelected?.call(option);
                   Get.back();
                 },
               ),
@@ -188,16 +202,16 @@ class SettingsController extends GetxController {
   Future<void> signOut() async {
     final confirmed = await Get.dialog<bool>(
       AlertDialog(
-        title: const Text('Sign out'),
-        content: const Text('Are you sure you want to sign out?'),
+        title: Text('sign_out'.tr),
+        content: Text('sign_out_confirm'.tr),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr),
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
-            child: const Text('Sign out'),
+            child: Text('sign_out'.tr),
           ),
         ],
       ),

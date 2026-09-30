@@ -29,7 +29,10 @@ class _AnalyticsViewState extends State<AnalyticsView> with RouteAware {
   }
 
   @override
-  void didPopNext() => setState(() {});
+  void didPopNext() {
+    setState(() {});
+    controller.reload();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +70,7 @@ class _Header extends GetView<AnalyticsController> {
             children: [
               Expanded(
                 child: Text(
-                  'Analytics',
+                  'nav_analytics'.tr,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -82,7 +85,7 @@ class _Header extends GetView<AnalyticsController> {
                   size: 18,
                 ),
                 onPressed: controller.goBack,
-                tooltip: 'Back',
+                tooltip: 'back'.tr,
               ),
             ],
           ),
@@ -90,7 +93,7 @@ class _Header extends GetView<AnalyticsController> {
         // Period tab bar
         Obx(
           () => PeriodTabBar(
-            selected: controller.periodLabel,
+            selected: controller.periodKey,
             onDay: controller.selectDay,
             onWeek: controller.selectWeek,
             onMonth: controller.selectMonth,
@@ -104,22 +107,29 @@ class _Header extends GetView<AnalyticsController> {
 // ── Scrollable body ───────────────────────────────────────────────────────────
 class _Body extends GetView<AnalyticsController> {
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SectionLabel('Summary'),
-        _KpiGrid(),
-        const SectionLabel('Consumption'),
-        _ComparisonChart(),
-        const SectionLabel('Power trend'),
-        _TrendChart(),
-        const SectionLabel('Peak hours'),
-        _Heatmap(),
-        const SectionLabel('Cost'),
-        _CostChart(),
-      ],
+  Widget build(BuildContext context) => Obx(
+    () => SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (controller.isLoading.value) const LinearProgressIndicator(),
+          if (!controller.hasMonthlyAdjustments)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                'analytics_adjustments_missing'.tr,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+          SectionLabel('analytics_summary'.tr),
+          _KpiGrid(),
+          SectionLabel('analytics_consumption'.tr),
+          _ComparisonChart(),
+          SectionLabel('analytics_estimated_cost'.tr),
+          _CostChart(),
+        ],
+      ),
     ),
   );
 }
@@ -130,6 +140,12 @@ class _KpiGrid extends GetView<AnalyticsController> {
   Widget build(BuildContext context) => Obx(() {
     final s = controller.summary.value;
     if (s == null) return const SizedBox.shrink();
+    if (s.daysWithReadings == 0) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text('analytics_no_history'.tr),
+      );
+    }
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -139,30 +155,34 @@ class _KpiGrid extends GetView<AnalyticsController> {
       childAspectRatio: 1.50,
       children: [
         KpiCard(
-          label: 'Total units',
+          label: 'analytics_kpi_total_units'.tr,
           value: '${s.totalKwh.toStringAsFixed(1)} kWh',
-          delta:
-              '${controller.deltaLabel(s.kwhDeltaPct)} vs prev ${controller.periodLabel.toLowerCase()}',
+          delta: s.hasPreviousData
+              ? '${controller.deltaLabel(s.kwhDeltaPct)} ${'analytics_vs_prev'.trParams({'period': controller.periodLabelLower})}'
+              : 'analytics_no_previous'.tr,
           deltaIsGood: !controller.isPositiveDelta(s.kwhDeltaPct),
         ),
         KpiCard(
-          label: 'Avg daily cost',
+          label: 'analytics_kpi_avg_cost'.tr,
           value: 'Rs. ${s.avgDailyCostRs.toStringAsFixed(0)}',
-          delta:
-              '${controller.deltaLabel(s.costDeltaPct)} vs prev ${controller.periodLabel.toLowerCase()}',
+          delta: s.hasPreviousData
+              ? '${controller.deltaLabel(s.costDeltaPct)} ${'analytics_vs_prev'.trParams({'period': controller.periodLabelLower})}'
+              : 'analytics_no_previous'.tr,
           deltaIsGood: !controller.isPositiveDelta(s.costDeltaPct),
         ),
         KpiCard(
-          label: 'Peak demand',
-          value: '${s.peakKw.toStringAsFixed(1)} kW',
-          delta: s.peakLabel,
+          label: 'analytics_kpi_highest_use'.tr,
+          value: '${s.maxDailyKwh.toStringAsFixed(1)} kWh',
+          delta: s.maxDailyLabel,
           deltaIsGood: true,
         ),
         KpiCard(
-          label: 'Avg power factor',
-          value: s.avgPowerFactor.toStringAsFixed(2),
-          delta: s.avgPowerFactor >= 0.9 ? '↑ Good' : '↓ Low',
-          deltaIsGood: s.avgPowerFactor >= 0.9,
+          label: 'analytics_kpi_days_readings'.tr,
+          value: '${s.daysWithReadings}',
+          delta: 'analytics_in_period'.trParams({
+            'period': controller.periodLabelLower,
+          }),
+          deltaIsGood: true,
         ),
       ],
     );
@@ -177,32 +197,10 @@ class _ComparisonChart extends GetView<AnalyticsController> {
     return ComparisonBarChart(
       data: data,
       maxKwh: controller.maxKwh,
-      currentLabel: 'This ${controller.periodLabel.toLowerCase()}',
+      currentLabel: 'analytics_this_period'.trParams({
+        'period': controller.periodLabelLower,
+      }),
     );
-  });
-}
-
-// ── Power trend line ──────────────────────────────────────────────────────────
-class _TrendChart extends GetView<AnalyticsController> {
-  @override
-  Widget build(BuildContext context) => Obx(() {
-    final s = controller.summary.value;
-    final trendData = controller.hourlyTrend.toList();
-    return PowerTrendChart(
-      data: trendData,
-      maxKw: controller.maxKw,
-      peakLabel:
-          '${s?.peakKw.toStringAsFixed(1) ?? '--'} kW · ${s?.peakLabel ?? ''}',
-    );
-  });
-}
-
-// ── Heatmap ───────────────────────────────────────────────────────────────────
-class _Heatmap extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Obx(() {
-    final cells = Get.find<AnalyticsController>().heatmapCells.toList();
-    return PeakHoursHeatmap(cells: cells);
   });
 }
 
@@ -236,20 +234,20 @@ class _BottomNav extends GetView<AnalyticsController> {
           children: [
             _NavItem(
               Icons.dashboard_rounded,
-              'Dashboard',
+              'nav_dashboard'.tr,
               false,
               () => Get.offNamed('/dashboard', arguments: Get.arguments),
             ),
-            _NavItem(Icons.show_chart_rounded, 'Analytics', true, () {}),
+            _NavItem(Icons.show_chart_rounded, 'nav_analytics'.tr, true, () {}),
             _NavItem(
               Icons.receipt_long_rounded,
-              'Bills',
+              'nav_bills'.tr,
               false,
               () => Get.toNamed('/bills', arguments: Get.arguments),
             ),
             _NavItem(
               Icons.settings_rounded,
-              'Settings',
+              'nav_settings'.tr,
               false,
               () => Get.toNamed(AppRoutes.settings, arguments: Get.arguments),
             ),

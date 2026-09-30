@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class BillMonth {
   final int year;
   final int month;
@@ -23,43 +25,11 @@ class BillMonth {
     return DateTime(year, month).isAfter(DateTime(now.year, now.month));
   }
 
-  String get label {
-    const n = [
-      '',
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return '${n[month]} $year';
-  }
+  /// "September 2026" — chuni hui zubaan ke mutabiq mahine ka naam.
+  String get label => '${'month_$month'.tr} $year';
 
-  String get shortLabel {
-    const n = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return n[month];
-  }
+  /// "Sep" — chart legends ke liye chhota naam.
+  String get shortLabel => 'month_short_$month'.tr;
 
   @override
   bool operator ==(Object other) =>
@@ -69,15 +39,25 @@ class BillMonth {
 }
 
 class InvoiceLineItem {
+  /// Translation key (jaise 'bills_units_consumed') — render ke waqt `.tr`
+  /// se resolve hota hai taake zubaan badalne par label bhi badle.
   final String label;
+
+  /// `.trParams` ke liye values, jaise {'detail': '4 kW × Rs. 300'}.
+  final Map<String, String> params;
   final double amountRs;
   final bool isSubItem;
   final bool isDivider;
+
+  /// true = amount kWh mein hai (Rs. ke bajaye).
+  final bool isUnits;
   const InvoiceLineItem({
     required this.label,
     required this.amountRs,
     this.isSubItem = false,
     this.isDivider = false,
+    this.isUnits = false,
+    this.params = const {},
   });
 }
 

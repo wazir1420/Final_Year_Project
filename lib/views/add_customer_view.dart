@@ -14,7 +14,7 @@ class AddCustomerView extends GetView<AdminController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3F6),
       appBar: AppBar(
-        title: const Text('Add customer'),
+        title: Text('admin_add_customer'.tr),
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: const Color(0xFF0B0F19),
@@ -31,11 +31,11 @@ class AddCustomerView extends GetView<AdminController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _Label('CUSTOMER NAME'),
-              _field(controller.nameController, 'e.g. Ahmed Khan'),
+              _Label('add_customer_name_label'.tr),
+              _field(controller.nameController, 'add_customer_name_hint'.tr),
               const SizedBox(height: 14),
 
-              const _Label('EMAIL'),
+              _Label('login_email_label'.tr),
               Obx(
                 () => _field(
                   controller.emailController,
@@ -49,16 +49,16 @@ class AddCustomerView extends GetView<AdminController> {
               ),
               const SizedBox(height: 14),
 
-              const _Label('PASSWORD'),
+              _Label('login_password_label'.tr),
               Obx(
                 () => _field(
                   controller.passwordController,
-                  'Kam az kam 6 characters',
+                  'add_customer_password_hint'.tr,
                   obscure: !controller.isPasswordVisible.value,
                   suffixIcon: IconButton(
                     tooltip: controller.isPasswordVisible.value
-                        ? 'Hide password'
-                        : 'Show password',
+                        ? 'common_hide_password'.tr
+                        : 'common_show_password'.tr,
                     onPressed: controller.isPasswordVisible.toggle,
                     icon: Icon(
                       controller.isPasswordVisible.value
@@ -72,23 +72,26 @@ class AddCustomerView extends GetView<AdminController> {
 
               Divider(color: _kBorderLight),
               const SizedBox(height: 10),
-              const Text(
-                'Pehla meter',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              Text(
+                'add_customer_first_meter'.tr,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
 
-              const _Label('METER ID'),
+              _Label('add_customer_meter_id_label'.tr),
               _field(
                 controller.meterIdController,
-                'e.g. meter1 (ESP32 code mein bhi yahi ID hona chahiye)',
+                'add_customer_meter_id_hint'.tr,
               ),
               const SizedBox(height: 14),
 
-              const _Label('METER NAAM (OPTIONAL)'),
+              _Label('add_customer_meter_name_label'.tr),
               _field(
                 controller.meterNameController,
-                'e.g. ABB B24 - Main line',
+                'add_customer_meter_name_hint'.tr,
               ),
 
               Obx(() {
@@ -119,16 +122,16 @@ class AddCustomerView extends GetView<AdminController> {
                             if (success) {
                               await Get.dialog<void>(
                                 AlertDialog(
-                                  title: const Text(
-                                    'Customer added successfully',
+                                  title: Text(
+                                    'add_customer_success_title'.tr,
                                   ),
-                                  content: const Text(
-                                    'The customer account and meter were added.',
+                                  content: Text(
+                                    'add_customer_success_msg'.tr,
                                   ),
                                   actions: [
                                     TextButton(
                                       onPressed: Get.back,
-                                      child: const Text('OK'),
+                                      child: Text('common_ok'.tr),
                                     ),
                                   ],
                                 ),
@@ -153,9 +156,11 @@ class AddCustomerView extends GetView<AdminController> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text(
-                            'Create customer',
-                            style: TextStyle(fontWeight: FontWeight.w500),
+                        : Text(
+                            'add_customer_create'.tr,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                   ),
                 ),

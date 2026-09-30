@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MlPredictionView extends StatelessWidget {
   const MlPredictionView({super.key});
@@ -6,8 +7,8 @@ class MlPredictionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ML Prediction')),
-      body: const Center(child: Text('ML prediction details coming soon')),
+      appBar: AppBar(title: Text('ml_title'.tr)),
+      body: Center(child: Text('ml_coming_soon'.tr)),
     );
   }
 }

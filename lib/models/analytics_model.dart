@@ -35,18 +35,26 @@ class AnalyticsSummary {
   final double totalKwh;
   final double avgDailyCostRs;
   final double peakKw;
-  final String peakLabel; // e.g. "Tue 7–8 PM"
+  final String peakLabel;
   final double avgPowerFactor;
   final double kwhDeltaPct; // signed %, vs previous period
   final double costDeltaPct;
+  final double maxDailyKwh;
+  final String maxDailyLabel;
+  final int daysWithReadings;
+  final bool hasPreviousData;
 
   const AnalyticsSummary({
     required this.totalKwh,
     required this.avgDailyCostRs,
-    required this.peakKw,
-    required this.peakLabel,
-    required this.avgPowerFactor,
+    this.peakKw = 0,
+    this.peakLabel = '',
+    this.avgPowerFactor = 0,
     required this.kwhDeltaPct,
     required this.costDeltaPct,
+    this.maxDailyKwh = 0,
+    this.maxDailyLabel = '',
+    this.daysWithReadings = 0,
+    this.hasPreviousData = false,
   });
 }

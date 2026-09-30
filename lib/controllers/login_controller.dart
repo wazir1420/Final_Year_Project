@@ -25,11 +25,11 @@ class LoginController extends GetxController {
     final email = requestEmailController.text.trim();
 
     if (name.isEmpty || email.isEmpty) {
-      requestError.value = 'Name and email are required';
+      requestError.value = 'login_error_name_email'.tr;
       return false;
     }
     if (!AuthService.isValidEmail(email)) {
-      requestError.value = 'Enter a valid email address';
+      requestError.value = 'login_error_valid_email'.tr;
       return false;
     }
 
@@ -58,7 +58,7 @@ class LoginController extends GetxController {
     final password = passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      errorMessage.value = 'Email aur password dono dalein';
+      errorMessage.value = 'login_error_both_required'.tr;
       return;
     }
 
@@ -71,8 +71,7 @@ class LoginController extends GetxController {
       final profile = await _authService.fetchUserProfile(session.uid);
 
       if (profile == null) {
-        errorMessage.value =
-            'Account mila lekin profile set nahi hai — Admin se rabta karein';
+        errorMessage.value = 'login_error_no_profile'.tr;
         isLoading.value = false;
         return;
       }

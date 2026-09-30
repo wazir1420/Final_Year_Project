@@ -87,7 +87,8 @@ class FirebaseAdminService {
             final age = DateTime.now()
                 .difference(DateTime.fromMillisecondsSinceEpoch(ts))
                 .inSeconds;
-            if (age < 10) return true;
+            // Thoda negative age (phone ke clock skew) bhi online ginte hain.
+            if (age > -60 && age < 10) return true;
           }
         }
       } catch (_) {}

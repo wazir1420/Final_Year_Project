@@ -28,12 +28,15 @@ class MeterSummary {
 
     final ageSeconds = DateTime.now().difference(timestamp).inSeconds;
 
+    // age >= 0 ka sakht check phone ke clock peeche hone par meter ko jhooti
+    // "offline" dikha deta hai (meter apni NTP ghari se timestamp bhejta hai).
+    // Is liye thoda negative skew (60s) bhi fresh hi ginte hain.
     return MeterSummary(
       id: id,
       name: (data['name'] ?? id).toString(),
       activePower: powerW / 1000,
       avgVoltage: voltage,
-      isOnline: ageSeconds >= 0 && ageSeconds < 10,
+      isOnline: ageSeconds > -60 && ageSeconds < 10,
       lastUpdated: timestamp,
     );
   }

@@ -20,7 +20,7 @@ class SettingsView extends GetView<SettingsController> {
           ),
           onPressed: () => Get.back(),
         ),
-        title: const Text('Settings'),
+        title: Text('settings'.tr),
         elevation: 0,
       ),
       body: ListView(
@@ -28,13 +28,13 @@ class SettingsView extends GetView<SettingsController> {
         children: [
           _buildAccountRow(),
           const SizedBox(height: 20),
-          _sectionLabel('Alerts'),
+          _sectionLabel('alerts'.tr),
           _buildAlertsCard(),
           const SizedBox(height: 12),
-          _sectionLabel('Meter and connection'),
+          _sectionLabel('meter_connection'.tr),
           _buildMeterCard(),
           const SizedBox(height: 12),
-          _sectionLabel('App preferences'),
+          _sectionLabel('app_preferences'.tr),
           _buildPreferencesCard(),
           const SizedBox(height: 24),
           _buildSignOutButton(),
@@ -136,7 +136,7 @@ class SettingsView extends GetView<SettingsController> {
         Obx(
           () => ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Bill threshold alert'),
+            title: Text('bill_threshold_alert'.tr),
             trailing: Switch(
               value: controller.billThresholdAlert.value,
               onChanged: controller.toggleBillThresholdAlert,
@@ -148,7 +148,7 @@ class SettingsView extends GetView<SettingsController> {
         Obx(
           () => ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('High power alert'),
+            title: Text('high_power_alert'.tr),
             trailing: Switch(
               value: controller.highPowerAlert.value,
               onChanged: controller.toggleHighPowerAlert,
@@ -160,7 +160,7 @@ class SettingsView extends GetView<SettingsController> {
         Obx(
           () => ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Daily summary'),
+            title: Text('daily_summary'.tr),
             trailing: Switch(
               value: controller.dailySummary.value,
               onChanged: controller.toggleDailySummary,
@@ -178,7 +178,7 @@ class SettingsView extends GetView<SettingsController> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.memory),
-          title: const Text('Meter model'),
+          title: Text('meter_model'.tr),
           trailing: Obx(
             () => Row(
               mainAxisSize: MainAxisSize.min,
@@ -202,7 +202,7 @@ class SettingsView extends GetView<SettingsController> {
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.cloud_outlined),
-          title: const Text('Firebase connection'),
+          title: Text('firebase_connection'.tr),
           trailing: Obx(
             () => Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -213,7 +213,7 @@ class SettingsView extends GetView<SettingsController> {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                controller.isFirebaseConnected.value ? 'Live' : 'Offline',
+                controller.isFirebaseConnected.value ? 'live'.tr : 'offline'.tr,
                 style: TextStyle(
                   fontSize: 12,
                   color: controller.isFirebaseConnected.value
@@ -240,7 +240,7 @@ class SettingsView extends GetView<SettingsController> {
                   ? Theme.of(Get.context!).colorScheme.primary
                   : Colors.grey,
             ),
-            title: const Text('Dark mode'),
+            title: Text('dark_mode'.tr),
             trailing: Switch(
               value: controller.isDarkMode.value,
               onChanged: controller.toggleDarkMode,
@@ -251,7 +251,7 @@ class SettingsView extends GetView<SettingsController> {
         _divider(),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Language'),
+          title: Text('language'.tr),
           trailing: Obx(
             () => Row(
               mainAxisSize: MainAxisSize.min,
@@ -269,7 +269,7 @@ class SettingsView extends GetView<SettingsController> {
         _divider(),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Currency'),
+          title: Text('currency'.tr),
           trailing: Obx(
             () => Row(
               mainAxisSize: MainAxisSize.min,
@@ -296,12 +296,12 @@ class SettingsView extends GetView<SettingsController> {
         side: const BorderSide(color: Color(0xFFE24B4A)),
         foregroundColor: const Color(0xFFA32D2D),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.logout, size: 18),
-          SizedBox(width: 8),
-          Text('Sign out'),
+          const Icon(Icons.logout, size: 18),
+          const SizedBox(width: 8),
+          Text('sign_out'.tr),
         ],
       ),
     );

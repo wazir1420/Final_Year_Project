@@ -86,7 +86,9 @@ class BillHeroCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '$monthLabel estimate',
+                      'bills_hero_title'.trParams({
+                        'month': monthLabel,
+                      }),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0x99FFFFFF),
@@ -145,7 +147,7 @@ class BillHeroCard extends StatelessWidget {
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                '$daysRemaining days remaining in billing period',
+                'bills_days_remaining'.trParams({'days': '$daysRemaining'}),
                 style: const TextStyle(fontSize: 10, color: Color(0x55FFFFFF)),
               ),
             ),
@@ -223,7 +225,7 @@ class InvoiceCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'WAPDA / K-Electric · $monthLabel',
+                  'bills_invoice_header'.trParams({'month': monthLabel}),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -231,7 +233,7 @@ class InvoiceCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Est. invoice',
+                  'bills_est_invoice'.tr,
                   style: TextStyle(fontSize: 10, color: kMuted),
                 ),
               ],
@@ -250,7 +252,7 @@ class InvoiceCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Estimated total',
+                  'estimated_total'.tr,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -310,7 +312,6 @@ class _RowContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUnits = item.label == 'Units consumed';
     return Padding(
       padding: EdgeInsets.fromLTRB(item.isSubItem ? 28 : 16, 9, 16, 9),
       child: Row(
@@ -318,7 +319,7 @@ class _RowContent extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              item.label,
+              item.label.trParams(item.params),
               style: TextStyle(
                 fontSize: item.isSubItem ? 11 : 12,
                 color: item.isSubItem ? kMuted : kSecondary,
@@ -326,9 +327,9 @@ class _RowContent extends StatelessWidget {
             ),
           ),
           Text(
-            isUnits
+            item.isUnits
                 ? '${item.amountRs.toStringAsFixed(1)} kWh'
-                : 'Rs. ${item.amountRs.toStringAsFixed(0)}',
+                : 'Rs. ${item.amountRs.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 12,
               fontWeight: item.isDivider ? FontWeight.w600 : FontWeight.w500,
@@ -367,7 +368,7 @@ class DailyCostChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Cost per day',
+            'bills_cost_per_day'.tr,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -376,7 +377,7 @@ class DailyCostChart extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Rs. per day this month',
+            'bills_cost_per_day_sub'.tr,
             style: TextStyle(fontSize: 11, color: kMuted),
           ),
           const SizedBox(height: 12),
@@ -442,7 +443,7 @@ class DailyCostChart extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Avg per day',
+                  'bills_avg_per_day'.tr,
                   style: TextStyle(fontSize: 11, color: kMuted),
                 ),
                 Text(
@@ -490,7 +491,7 @@ class MonthComparisonChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Bill vs previous months',
+            'bills_comparison_title'.tr,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -583,7 +584,7 @@ class MonthComparisonChart extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '5-month average',
+                  'bills_5month_avg'.tr,
                   style: TextStyle(fontSize: 11, color: kMuted),
                 ),
                 Text(

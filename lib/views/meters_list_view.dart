@@ -13,7 +13,7 @@ class MetersListView extends GetView<MetersListController> {
     return Scaffold(
       backgroundColor: kSurface,
       appBar: AppBar(
-        title: const Text('Meters'),
+        title: Text('meters_title'.tr),
         elevation: 0,
         backgroundColor: kCard,
       ),
@@ -23,10 +23,7 @@ class MetersListView extends GetView<MetersListController> {
         }
         if (controller.meters.isEmpty) {
           return Center(
-            child: Text(
-              'Koi meter register nahi hai',
-              style: TextStyle(color: kMuted),
-            ),
+            child: Text('meters_empty'.tr, style: TextStyle(color: kMuted)),
           );
         }
         return ListView(
@@ -61,7 +58,7 @@ class _TotalCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Total combined power',
+          'meters_total_power'.tr,
           style: TextStyle(fontSize: 12, color: kMuted),
         ),
         const SizedBox(height: 6),
@@ -123,7 +120,7 @@ class _MeterCard extends StatelessWidget {
                 Text(
                   meter.isOnline
                       ? '${meter.activePower.toStringAsFixed(2)} kW · ${meter.avgVoltage.toStringAsFixed(0)} V'
-                      : 'Offline',
+                      : 'offline'.tr,
                   style: TextStyle(
                     fontSize: 12,
                     color: meter.isOnline ? kMuted : const Color(0xFF991F1F),

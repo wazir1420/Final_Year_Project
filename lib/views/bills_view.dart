@@ -4,7 +4,17 @@ import '../controllers/bills_controller.dart';
 import '../controllers/theme_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/bills_widgets.dart';
+import '../widgets/ke_tariff_settings_sheet.dart';
 import '../services/route_observer.dart';
+
+void _showTariffSettings(BillsController controller) {
+  Get.bottomSheet(
+    KETariffSettingsSheet(controller: controller),
+    isScrollControlled: true,
+    enableDrag: true,
+    isDismissible: true,
+  );
+}
 
 class BillsView extends StatefulWidget {
   const BillsView({super.key});
@@ -61,7 +71,7 @@ class _Header extends GetView<BillsController> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Bill',
+          'bills_title'.tr,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -114,24 +124,64 @@ class _Header extends GetView<BillsController> {
 
 class _Body extends GetView<BillsController> {
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SectionLabel('This month'),
-        _HeroCard(),
-        const SectionLabel('Invoice breakdown'),
-        _Invoice(),
-        const SectionLabel('Daily cost'),
-        _DailyChart(),
-        const SizedBox(height: 10),
-        const SectionLabel('Monthly comparison'),
-        _ComparisonChart(),
-        const SizedBox(height: 28),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) => Obx(() {
+    if (controller.isLoading.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (controller.dailyCosts.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('bills_no_history'.tr),
+        ),
+      );
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionLabel('bills_selected_month'.tr),
+          if (!controller.hasMonthlyAdjustments)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'bills_adjustments_missing'.tr,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _showTariffSettings(controller),
+                      child: Text('bills_set_tariff'.tr),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          _HeroCard(),
+          SectionLabel('bills_invoice_breakdown'.tr),
+          _Invoice(),
+          SectionLabel('bills_daily_cost'.tr),
+          _DailyChart(),
+          const SizedBox(height: 10),
+          SectionLabel('bills_monthly_comparison'.tr),
+          _ComparisonChart(),
+          const SizedBox(height: 28),
+        ],
+      ),
+    );
+  });
 }
 
 class _HeroCard extends GetView<BillsController> {
@@ -187,6 +237,7 @@ class _ComparisonChart extends GetView<BillsController> {
   );
 }
 
+// ── Bottom nav ────────────────────────────────────────────────────────────────
 class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
@@ -203,20 +254,20 @@ class _BottomNav extends StatelessWidget {
           children: [
             _NavItem(
               Icons.dashboard_rounded,
-              'Dashboard',
+              'nav_dashboard'.tr,
               false,
               () => Get.offNamed('/dashboard', arguments: Get.arguments),
             ),
             _NavItem(
               Icons.show_chart_rounded,
-              'Analytics',
+              'nav_analytics'.tr,
               false,
               () => Get.offNamed('/analytics', arguments: Get.arguments),
             ),
-            _NavItem(Icons.receipt_long_rounded, 'Bills', true, () {}),
+            _NavItem(Icons.receipt_long_rounded, 'nav_bills'.tr, true, () {}),
             _NavItem(
               Icons.settings_rounded,
-              'Settings',
+              'nav_settings'.tr,
               false,
               () => Get.toNamed(AppRoutes.settings, arguments: Get.arguments),
             ),

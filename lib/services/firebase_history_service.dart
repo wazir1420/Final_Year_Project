@@ -17,57 +17,69 @@ class FirebaseHistoryService {
   FirebaseHistoryService({this.meterId = 'meter1'});
 
   /// ESP32 jahan history likhta hai: /meters/{meterId}/history
-  String get _historyUrl => '$_dbUrl/meters/$meterId/history.json';
+  String get _historyUrl =>
+      '$_dbUrl/meters/${Uri.encodeComponent(meterId)}/history.json';
 
-  Future<MonthlyData> fetchMonthlyData() async {
+  Future<List<DatedDailyUsage>> fetchDailyUsage() async {
     try {
       final response = await http
           .get(Uri.parse(_historyUrl))
           .timeout(const Duration(seconds: 5));
 
       if (response.statusCode != 200 || response.body == 'null') {
-        return const MonthlyData(totalKwh: 0, daily: []);
+        return const [];
       }
 
       final raw = jsonDecode(response.body) as Map<String, dynamic>;
-
-      // Saari dates ko sort karein (chronological order mein), taake
-      // "aaj ki reading - kal ki reading" wala hisaab sahi ho.
-      final entries =
-          raw.entries
-              .map(
-                (e) => MapEntry(
-                  DateTime.parse(e.key),
-                  (e.value as num).toDouble(),
-                ),
-              )
-              .toList()
-            ..sort((a, b) => a.key.compareTo(b.key));
-
-      if (entries.isEmpty) return const MonthlyData(totalKwh: 0, daily: []);
-
-      final now = DateTime.now();
-      final List<DailyUsage> daily = [];
-      double monthTotal = 0;
-
-      for (int i = 1; i < entries.length; i++) {
-        final today = entries[i].key;
-        final delta = entries[i].value - entries[i - 1].value;
-        final kwh = delta < 0
-            ? 0.0
-            : delta; // meter reset ho jaye to negative na aaye
-
-        // Sirf isi mahine/saal ke din chart aur total mein ginte hain
-        if (today.year == now.year && today.month == now.month) {
-          daily.add(DailyUsage(day: today.day, kwh: kwh));
-          monthTotal += kwh;
-        }
-      }
-
-      return MonthlyData(totalKwh: monthTotal, daily: daily);
+      return parseDailyUsage(raw);
     } catch (e) {
-      // Network error waghera — khaali data wapas karein, UI crash na ho
-      return const MonthlyData(totalKwh: 0, daily: []);
+      return const [];
     }
+  }
+
+  static List<DatedDailyUsage> parseDailyUsage(Map<String, dynamic> raw) {
+    final entries = <MapEntry<DateTime, double>>[];
+    for (final entry in raw.entries) {
+      final value = entry.value;
+      if (value is! num) continue;
+      try {
+        final parsedDate = DateTime.parse(entry.key);
+        entries.add(
+          MapEntry(
+            DateTime(parsedDate.year, parsedDate.month, parsedDate.day),
+            value.toDouble(),
+          ),
+        );
+      } on FormatException {
+        continue;
+      }
+    }
+    entries.sort((a, b) => a.key.compareTo(b.key));
+    if (entries.length < 2) return const [];
+
+    final daily = <DatedDailyUsage>[];
+    for (int i = 1; i < entries.length; i++) {
+      final date = entries[i].key;
+      final delta = entries[i].value - entries[i - 1].value;
+      final kwh = delta < 0 ? 0.0 : delta;
+      daily.add(DatedDailyUsage(date: date, kwh: kwh));
+    }
+    return daily;
+  }
+
+  Future<MonthlyData> fetchMonthlyData() async {
+    final now = DateTime.now();
+    final daily = (await fetchDailyUsage())
+        .where(
+          (entry) =>
+              entry.date.year == now.year && entry.date.month == now.month,
+        )
+        .toList();
+    return MonthlyData(
+      totalKwh: daily.fold(0.0, (total, entry) => total + entry.kwh),
+      daily: daily
+          .map((entry) => DailyUsage(day: entry.date.day, kwh: entry.kwh))
+          .toList(),
+    );
   }
 }

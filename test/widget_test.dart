@@ -10,7 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:finalyearproject/main.dart';
 import 'package:finalyearproject/models/meter_summary_model.dart';
+import 'package:finalyearproject/models/ke_tariff_model.dart';
 import 'package:finalyearproject/services/auth_service.dart';
+import 'package:finalyearproject/services/firebase_history_service.dart';
 import 'package:finalyearproject/widgets/dashboard_widgets.dart';
 
 void main() {
@@ -44,6 +46,127 @@ void main() {
     expect(profile.meterIds, ['meter-1']);
     expect(olderProfile.profilePhoto, isEmpty);
   });
+
+  test('Firebase history becomes sorted daily usage deltas', () {
+    final usage = FirebaseHistoryService.parseDailyUsage({
+      '2026-09-30': 35.0,
+      '2026-09-28': 27.0,
+      '2026-10-01': 2.0,
+      '2026-09-29': 30.0,
+    });
+
+    expect(usage.map((entry) => entry.date.day), [29, 30, 1]);
+    expect(usage.map((entry) => entry.kwh), [3.0, 5.0, 0.0]);
+  });
+
+  // ── K-Electric: asal bills (Sanc Load 4 kW, tariff A1-R) ────────────────
+  // fcaUnits = bill par FCA line ke saamne likhe units (2 mahine pehle ke).
+  group('KE calculator matches real K-Electric bills', () {
+    KETariffCalculation bill(double units, double fcaUnits, int month) =>
+        KETariffCalculator.calculate(
+          units: units,
+          profile: const KETariffProfile(),
+          billingMonth: DateTime(2026, month),
+          fcaUnits: fcaUnits,
+        );
+
+    test('Jun-2026: 289 units', () {
+      final b = bill(289, 216, 6);
+      expect(b.fixedCharges, 1400);
+      expect(b.variableCharges, 9565.9);
+      expect(b.phlSurcharge, 933.47);
+      expect(b.electricityCharges, 11756.92);
+      expect(b.electricityDuty, 155.35);
+      expect(b.salesTax, 2144.21);
+      expect(b.muct, 40);
+      expect(b.total, closeTo(14096.48, 0.005));
+    });
+
+    test('Jul-2026: 254 units', () {
+      final b = bill(254, 302, 7);
+      expect(b.electricityCharges, 10225.04);
+      expect(b.electricityDuty, 132.38);
+      expect(b.salesTax, 1864.34);
+      expect(b.total, closeTo(12261.76, 0.005));
+    });
+
+    test('Aug-2026: 249 units', () {
+      final b = bill(249, 289, 8);
+      expect(b.electricityCharges, 10168.57);
+      expect(b.electricityDuty, 131.53);
+      expect(b.salesTax, 1854.02);
+      expect(b.total, closeTo(12194.12, 0.005));
+    });
+
+    test('Sep-2026: 200 units (Rs. 28.91 slab, fixed Rs. 300/kW, MUCT 20)', () {
+      final b = bill(200, 254, 9);
+      expect(b.baseRatePerUnit, 28.91);
+      expect(b.variableCharges, 5782);
+      expect(b.fixedCharges, 1200);
+      expect(b.muct, 20);
+      expect(b.electricityCharges, 8109.18);
+      expect(b.electricityDuty, 103.64);
+      expect(b.salesTax, 1478.31);
+      expect(b.total, closeTo(9711.13, 0.005));
+    });
+  });
+
+  test('KE rate changes at 201 units', () {
+    final at200 = KETariffCalculator.calculate(
+      units: 200,
+      profile: const KETariffProfile(),
+      billingMonth: DateTime(2026, 9),
+    );
+    final at201 = KETariffCalculator.calculate(
+      units: 201,
+      profile: const KETariffProfile(),
+      billingMonth: DateTime(2026, 9),
+    );
+
+    expect(at200.baseRatePerUnit, 28.91);
+    expect(at200.fixedCharges, 1200);
+    expect(at201.baseRatePerUnit, 33.10);
+    expect(at201.fixedCharges, 1400);
+  });
+
+  test('KE domestic tariff above 300 units uses the 201+ rate and fixed', () {
+    final estimate = KETariffCalculator.calculate(
+      units: 350,
+      profile: const KETariffProfile(),
+      billingMonth: DateTime(2026, 9),
+    );
+
+    expect(estimate.baseRatePerUnit, 33.10);
+    expect(estimate.fixedCharges, 1400);
+  });
+
+  test(
+    'KE tariff profiles preserve phase, tax, TV and monthly adjustments',
+    () {
+      const profile = KETariffProfile(
+        phase: KEPhase.threePhaseNonToU,
+        incomeTaxExempted: true,
+        tvCount: 2,
+        monthlyAdjustments: {
+          '2026-09': KEMonthlyAdjustment(
+            fcaPerUnit: 1.25,
+            quarterlyAdjustmentPerUnit: -0.5,
+          ),
+        },
+      );
+
+      final restored = KETariffProfile.fromJson(profile.toJson());
+
+      expect(restored.phase, KEPhase.threePhaseNonToU);
+      expect(restored.incomeTaxExempted, isTrue);
+      expect(restored.tvCount, 2);
+      expect(restored.adjustmentsFor(DateTime(2026, 9)).fcaPerUnit, 1.25);
+      expect(
+        restored.adjustmentsFor(DateTime(2026, 9)).quarterlyAdjustmentPerUnit,
+        -0.5,
+      );
+    },
+  );
 
   test('meter without a reading is offline', () {
     final meter = MeterSummary.fromJson('new-meter', {'name': 'New meter'});

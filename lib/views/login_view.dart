@@ -62,7 +62,7 @@ class LoginView extends GetView<LoginController> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'SIGN IN TO CONTINUE',
+                    'login_subtitle'.tr,
                     style: TextStyle(
                       fontSize: 12,
                       letterSpacing: 1,
@@ -71,7 +71,7 @@ class LoginView extends GetView<LoginController> {
                   ),
                   const SizedBox(height: 22),
 
-                  _FieldLabel('EMAIL'),
+                  _FieldLabel('login_email_label'.tr),
                   const SizedBox(height: 4),
                   TextField(
                     controller: controller.emailController,
@@ -80,18 +80,18 @@ class LoginView extends GetView<LoginController> {
                   ),
                   const SizedBox(height: 14),
 
-                  _FieldLabel('PASSWORD'),
+                  _FieldLabel('login_password_label'.tr),
                   const SizedBox(height: 4),
                   Obx(
                     () => TextField(
                       controller: controller.passwordController,
                       obscureText: !controller.isPasswordVisible.value,
                       decoration: _inputDecoration(
-                        'Enter your password',
+                        'login_password_hint'.tr,
                         suffixIcon: IconButton(
                           tooltip: controller.isPasswordVisible.value
-                              ? 'Hide password'
-                              : 'Show password',
+                              ? 'common_hide_password'.tr
+                              : 'common_show_password'.tr,
                           onPressed: controller.isPasswordVisible.toggle,
                           icon: Icon(
                             controller.isPasswordVisible.value
@@ -145,9 +145,11 @@ class LoginView extends GetView<LoginController> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Sign in',
-                                style: TextStyle(fontWeight: FontWeight.w500),
+                            : Text(
+                                'login_sign_in'.tr,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                       ),
                     ),
@@ -160,8 +162,8 @@ class LoginView extends GetView<LoginController> {
                       foregroundColor: kMutedText,
                       textStyle: const TextStyle(fontSize: 12),
                     ),
-                    child: const Text(
-                      'Contact your provider for account access',
+                    child: Text(
+                      'login_contact_provider'.tr,
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -201,7 +203,7 @@ class LoginView extends GetView<LoginController> {
     controller.requestError.value = '';
     Get.dialog<void>(
       AlertDialog(
-        title: const Text('Request account access'),
+        title: Text('login_request_access'.tr),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -220,8 +222,8 @@ class LoginView extends GetView<LoginController> {
                 controller: controller.requestMessageController,
                 textCapitalization: TextCapitalization.sentences,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Message (optional)',
+                decoration: InputDecoration(
+                  labelText: 'login_message_optional'.tr,
                 ),
               ),
               Obx(() {
@@ -240,7 +242,7 @@ class LoginView extends GetView<LoginController> {
           ),
         ),
         actions: [
-          TextButton(onPressed: Get.back, child: const Text('Cancel')),
+          TextButton(onPressed: Get.back, child: Text('cancel'.tr)),
           Obx(
             () => FilledButton(
               onPressed: controller.isRequestSubmitting.value
@@ -250,14 +252,12 @@ class LoginView extends GetView<LoginController> {
                         Get.back();
                         await Get.dialog<void>(
                           AlertDialog(
-                            title: const Text('Request sent successfully'),
-                            content: const Text(
-                              'Your provider will review your request.',
-                            ),
+                            title: Text('login_request_sent_title'.tr),
+                            content: Text('login_request_sent_msg'.tr),
                             actions: [
                               TextButton(
                                 onPressed: Get.back,
-                                child: const Text('OK'),
+                                child: Text('common_ok'.tr),
                               ),
                             ],
                           ),
@@ -270,7 +270,7 @@ class LoginView extends GetView<LoginController> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Send request'),
+                  : Text('login_send_request'.tr),
             ),
           ),
         ],

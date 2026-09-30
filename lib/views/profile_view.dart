@@ -21,7 +21,7 @@ class ProfileView extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text('profile_title'.tr)),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -30,8 +30,10 @@ class ProfileView extends GetView<ProfileController> {
         final photo = _photo(controller.profilePhoto.value);
         final role = controller.accountRole.value;
         final roleLabel = role.isEmpty
-            ? 'Account'
-            : role[0].toUpperCase() + role.substring(1);
+            ? 'profile_account'.tr
+            : role == 'admin'
+            ? 'profile_role_admin'.tr
+            : 'profile_role_customer'.tr;
 
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -50,7 +52,7 @@ class ProfileView extends GetView<ProfileController> {
                 const SizedBox(height: 16),
                 Text(
                   controller.userName.value.isEmpty
-                      ? 'Name not available'
+                      ? 'profile_no_name'.tr
                       : controller.userName.value,
                   style: Theme.of(
                     context,
@@ -60,7 +62,7 @@ class ProfileView extends GetView<ProfileController> {
                 const SizedBox(height: 4),
                 Text(
                   controller.userEmail.value.isEmpty
-                      ? 'Email not available'
+                      ? 'profile_no_email'.tr
                       : controller.userEmail.value,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colors.onSurfaceVariant,
@@ -87,45 +89,45 @@ class ProfileView extends GetView<ProfileController> {
                       : const Icon(Icons.photo_camera_outlined),
                   label: Text(
                     controller.isUploading.value
-                        ? 'Uploading...'
-                        : 'Change profile photo',
+                        ? 'profile_uploading'.tr
+                        : 'profile_change_photo'.tr,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            _sectionTitle(context, 'Account details'),
+            _sectionTitle(context, 'profile_account_details'.tr),
             const SizedBox(height: 8),
             _detailsPanel(context, [
               _detailRow(
                 context,
                 icon: Icons.alternate_email,
-                label: 'Email address',
+                label: 'profile_email_address'.tr,
                 value: controller.userEmail.value.isEmpty
-                    ? 'Not available'
+                    ? 'common_not_available'.tr
                     : controller.userEmail.value,
               ),
               const Divider(height: 1),
               _detailRow(
                 context,
                 icon: Icons.badge_outlined,
-                label: 'Account type',
+                label: 'profile_account_type'.tr,
                 value: roleLabel,
               ),
               const Divider(height: 1),
               _detailRow(
                 context,
                 icon: Icons.fingerprint,
-                label: 'User ID',
+                label: 'profile_user_id'.tr,
                 value: controller.userId.value.isEmpty
-                    ? 'Not available'
+                    ? 'common_not_available'.tr
                     : controller.userId.value,
               ),
             ]),
             const SizedBox(height: 24),
             _sectionTitle(
               context,
-              'Assigned meters',
+              'profile_assigned_meters'.tr,
               trailing: Text(
                 '${controller.meterIds.length}',
                 style: TextStyle(
@@ -145,7 +147,7 @@ class ProfileView extends GetView<ProfileController> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'No meters are assigned to this account.',
+                          'profile_no_meters'.tr,
                           style: TextStyle(color: colors.onSurfaceVariant),
                         ),
                       ),
@@ -166,7 +168,7 @@ class ProfileView extends GetView<ProfileController> {
                     icon: Icons.electrical_services,
                     label:
                         controller.meterNames[controller.meterIds[index]] ??
-                        'Meter ${index + 1}',
+                        'profile_meter_n'.trParams({'n': '${index + 1}'}),
                     value: 'ID: ${controller.meterIds[index]}',
                   ),
                 ],

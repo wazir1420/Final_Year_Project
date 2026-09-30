@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../widgets/ripple_painter.dart';
 import '../widgets/logo_mark.dart';
@@ -408,9 +409,9 @@ class _BrandText extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 6),
-      const Text(
-        'SMART ENERGY ANALYTICS',
-        style: TextStyle(
+      Text(
+        'splash_tagline'.tr,
+        style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w400,
           color: Color(0xFF94A3B8),
@@ -427,9 +428,9 @@ class _FeaturePills extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      _Pill(dotColor: const Color(0xFF10B981), label: 'Live monitoring'),
+      _Pill(dotColor: const Color(0xFF10B981), label: 'splash_live_monitoring'.tr),
       const SizedBox(width: 10),
-      _Pill(dotColor: const Color(0xFF60A5FA), label: 'ML predictions'),
+      _Pill(dotColor: const Color(0xFF60A5FA), label: 'splash_ml_predictions'.tr),
     ],
   );
 }

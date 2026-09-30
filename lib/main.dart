@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
 
 import 'routes/app_routes.dart';
 import 'themes/app_theme.dart';
 import 'controllers/theme_controller.dart';
+import 'controllers/language_controller.dart';
+import 'translations/app_translations.dart';
 import 'services/route_observer.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(ThemeController());
+
+  final languageCtrl = Get.put(LanguageController());
+  await languageCtrl.load();
   runApp(const MyApp());
 }
 
@@ -18,9 +24,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeCtrl = Get.find<ThemeController>();
+    final languageCtrl = Get.find<LanguageController>();
     return Obx(
       () => GetMaterialApp(
         debugShowCheckedModeBanner: false,
+        translations: AppTranslations(),
+        locale: languageCtrl.locale.value,
+        fallbackLocale: LanguageController.english,
+        supportedLocales: const [
+          LanguageController.english,
+          LanguageController.urdu,
+        ],
+        // Urdu ke liye right-to-left layout in delegates se aata hai.
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: themeCtrl.isDarkRx.value ? ThemeMode.dark : ThemeMode.light,
