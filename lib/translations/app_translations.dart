@@ -106,6 +106,17 @@ class AppTranslations extends Translations {
     'analytics_peak_hours': 'Peak hours',
     'analytics_peak_days': 'Peak days',
     'analytics_peak_weeks': 'Peak weeks',
+    'analytics_filter': 'Filter',
+    'analytics_filter_title': 'Filter analytics',
+    'analytics_filter_start_time': 'From time',
+    'analytics_filter_end_time': 'To time',
+    'analytics_filter_start_day': 'From day',
+    'analytics_filter_end_day': 'Through day',
+    'analytics_filter_choose_dates': 'Choose date range',
+    'analytics_filter_invalid_range': 'Start must be before end',
+    'analytics_filter_same_month': 'Choose dates within the same month',
+    'analytics_filter_reset': 'Reset',
+    'analytics_filter_apply': 'Apply',
     'analytics_peak_at': 'Peak at @point',
     'analytics_data_collecting':
         'Data is being collected — this graph will fill automatically as readings come in. Check back @when.',
@@ -282,8 +293,7 @@ class AppTranslations extends Translations {
     'admin_meter_name_optional': 'Meter name (optional)',
     'admin_confirm': 'Confirm',
     'admin_delete_request_title': 'Delete request?',
-    'admin_delete_request_msg':
-        'Delete the pending request from @name?',
+    'admin_delete_request_msg': 'Delete the pending request from @name?',
     'admin_request_deleted': 'Request deleted',
     'admin_request_deleted_msg': 'The pending request was removed.',
     'admin_total_customers': 'Total customers',
@@ -308,8 +318,7 @@ class AppTranslations extends Translations {
     'admin_delete_request_tooltip': 'Delete request',
     'admin_error_valid_gmail': 'Enter a valid Gmail address',
     'admin_error_gmail_required': 'Gmail address is required',
-    'admin_error_required_fields':
-        'Naam, password, aur meter ID zaroori hain',
+    'admin_error_required_fields': 'Naam, password, aur meter ID zaroori hain',
     'admin_error_email_exists': 'An account with this email already exists',
     'admin_delete_failed': 'Delete failed',
     'admin_reset_not_sent': 'Reset email not sent',
@@ -336,8 +345,7 @@ class AppTranslations extends Translations {
     'add_customer_meter_name_label': 'METER NAME (OPTIONAL)',
     'add_customer_meter_name_hint': 'e.g. ABB B24 - Main line',
     'add_customer_success_title': 'Customer added successfully',
-    'add_customer_success_msg':
-        'The customer account and meter were added.',
+    'add_customer_success_msg': 'The customer account and meter were added.',
     'add_customer_create': 'Create customer',
 
     // Common
@@ -452,6 +460,17 @@ class AppTranslations extends Translations {
     'analytics_peak_hours': 'پیک اوقات',
     'analytics_peak_days': 'پیک دن',
     'analytics_peak_weeks': 'پیک ہفتے',
+    'analytics_filter': 'فلٹر',
+    'analytics_filter_title': 'تجزیاتی ڈیٹا فلٹر کریں',
+    'analytics_filter_start_time': 'اس وقت سے',
+    'analytics_filter_end_time': 'اس وقت تک',
+    'analytics_filter_start_day': 'اس دن سے',
+    'analytics_filter_end_day': 'اس دن تک',
+    'analytics_filter_choose_dates': 'تاریخوں کی حد منتخب کریں',
+    'analytics_filter_invalid_range': 'شروع اختتام سے پہلے ہونا چاہیے',
+    'analytics_filter_same_month': 'ایک ہی مہینے کی تاریخیں منتخب کریں',
+    'analytics_filter_reset': 'ری سیٹ',
+    'analytics_filter_apply': 'لاگو کریں',
     'analytics_peak_at': 'پیک @point',
     'analytics_data_collecting':
         'ڈیٹا جمع ہو رہا ہے — ریڈنگز آنے کے ساتھ یہ گراف خود بخود بھرے گا۔ @when دوبارہ دیکھیں۔',
@@ -473,7 +492,8 @@ class AppTranslations extends Translations {
     // Bills
     'bills_title': 'بل',
     'bills_selected_month': 'منتخب مہینہ',
-    'bills_adjustments_missing': 'FCA اور سہ ماہی ایڈجسٹمنٹ ابھی شامل نہیں ہیں۔',
+    'bills_adjustments_missing':
+        'FCA اور سہ ماہی ایڈجسٹمنٹ ابھی شامل نہیں ہیں۔',
     'bills_set_tariff': 'ٹیرف سیٹ کریں',
     'bills_invoice_breakdown': 'تخمینی بل کی تفصیل',
     'bills_daily_cost': 'تخمینی روزانہ لاگت',
@@ -600,8 +620,7 @@ class AppTranslations extends Translations {
     'profile_meter_n': 'میٹر @n',
     'profile_role_customer': 'کسٹمر',
     'profile_role_admin': 'ایڈمن',
-    'profile_error_session_expired':
-        'سیشن ختم ہو گئی۔ دوبارہ لاگ اِن کریں۔',
+    'profile_error_session_expired': 'سیشن ختم ہو گئی۔ دوبارہ لاگ اِن کریں۔',
     'profile_error_upload_title': 'فوٹو اپ لوڈ نہیں ہوئی',
 
     // Meters list
@@ -650,8 +669,7 @@ class AppTranslations extends Translations {
     'admin_delete_request_tooltip': 'درخواست حذف کریں',
     'admin_error_valid_gmail': 'درست جی میل ایڈریس درج کریں',
     'admin_error_gmail_required': 'جی میل ایڈریس ضروری ہے',
-    'admin_error_required_fields':
-        'نام، پاس ورڈ، اور میٹر آئی ڈی ضروری ہیں',
+    'admin_error_required_fields': 'نام، پاس ورڈ، اور میٹر آئی ڈی ضروری ہیں',
     'admin_error_email_exists': 'اس ای میل کا اکاؤنٹ پہلے سے موجود ہے',
     'admin_delete_failed': 'حذف نہیں ہو سکا',
     'admin_reset_not_sent': 'ری سیٹ ای میل نہیں بھیجا گیا',

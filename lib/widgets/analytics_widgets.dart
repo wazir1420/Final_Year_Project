@@ -46,7 +46,12 @@ class PeriodTabBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _PeriodTab('day', 'analytics_period_day'.tr, selected == 'day', onDay),
+          _PeriodTab(
+            'day',
+            'analytics_period_day'.tr,
+            selected == 'day',
+            onDay,
+          ),
           _PeriodTab(
             'week',
             'analytics_period_week'.tr,
@@ -328,7 +333,10 @@ class PowerTrendChart extends StatelessWidget {
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(l, style: TextStyle(fontSize: 10, color: kMuted)),
+                    child: Text(
+                      l,
+                      style: TextStyle(fontSize: 10, color: kMuted),
+                    ),
                   ),
                 ),
             ],
@@ -342,11 +350,13 @@ class PowerTrendChart extends StatelessWidget {
 class PeakHoursHeatmap extends StatelessWidget {
   final List<HeatmapCell> cells;
   final String title;
+  final bool isMonthView;
 
   const PeakHoursHeatmap({
     super.key,
     required this.cells,
     required this.title,
+    required this.isMonthView,
   });
 
   @override
@@ -355,7 +365,7 @@ class PeakHoursHeatmap extends StatelessWidget {
       return _emptyShell('analytics_no_heatmap'.tr);
     }
 
-    const hours = [6, 9, 12, 15, 18, 21];
+    const hours = [0, 3, 6, 9, 12, 15, 18, 21];
     // Columns cells se hi derive hote hain (dayKey = column index):
     // Day → 1 (Aaj), Week → 1..7 (Mon..Sun), Month → 1..5 (W1..W5).
     // Urdu/English dono mein lookup sahi rehta hai.
@@ -364,8 +374,6 @@ class PeakHoursHeatmap extends StatelessWidget {
       columns.putIfAbsent(cell.dayKey, () => cell.day);
     }
     final colKeys = columns.keys.toList()..sort();
-    final colWidth = colKeys.length <= 3 ? 56.0 : 32.0;
-
     final map = <int, Map<int, HeatmapCell>>{};
     for (final cell in cells) {
       map[cell.hour] = map[cell.hour] ?? {};
@@ -385,62 +393,93 @@ class PeakHoursHeatmap extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const SizedBox(width: 36),
-                    ...colKeys.map(
-                      (key) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: SizedBox(
-                          width: colWidth,
-                          child: Center(
-                            child: Text(
-                              columns[key]!,
-                              style: TextStyle(fontSize: 10, color: kMuted),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final labelWidth = isMonthView ? 80.0 : 90.0;
+              final colWidth = isMonthView
+                  ? ((constraints.maxWidth - labelWidth - 20) / 5).clamp(
+                      20.0,
+                      72.0,
+                    )
+                  : colKeys.length <= 3
+                  ? 56.0
+                  : 32.0;
+              final grid = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(width: labelWidth),
+                      ...colKeys.map(
+                        (key) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: SizedBox(
+                            width: colWidth,
+                            child: Center(
+                              child: isMonthView
+                                  ? Text(
+                                      columns[key]!,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      style: TextStyle(
+                                        fontSize: colWidth < 36 ? 10 : 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: kMuted,
+                                      ),
+                                    )
+                                  : FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        columns[key]!,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: kMuted,
+                                        ),
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ...hours.map((hour) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 44,
-                          child: Text(
-                            _slotLabel(hour),
-                            style: TextStyle(fontSize: 10, color: kMuted),
-                          ),
-                        ),
-                        ...colKeys.map((key) {
-                          final intensity =
-                              map[hour]?[key]?.intensity ?? 0.0;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            width: colWidth,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: _heatColor(intensity),
-                              borderRadius: BorderRadius.circular(8),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ...hours.map((hour) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: labelWidth,
+                            child: Text(
+                              _slotRangeLabel(hour),
+                              style: TextStyle(fontSize: 10, color: kMuted),
                             ),
-                          );
-                        }),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-            ),
+                          ),
+                          ...colKeys.map((key) {
+                            final intensity = map[hour]?[key]?.intensity ?? 0.0;
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              width: colWidth,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: _heatColor(intensity),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              );
+              if (isMonthView) return grid;
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: grid,
+              );
+            },
           ),
         ],
       ),
@@ -567,11 +606,14 @@ Widget _legendDot(Color color, String label) => Row(
   ],
 );
 
-/// Slot label 12-hour format mein: 6 → "6 AM", 12 → "12 PM",
-/// 15 → "3 PM", 21 → "9 PM"
+/// Three-hour slot label, for example "9 PM - 12 AM".
+String _slotRangeLabel(int startHour) =>
+    '${_slotLabel(startHour)} - ${_slotLabel((startHour + 3) % 24)}';
+
 String _slotLabel(int hour) {
-  final h12 = hour % 12 == 0 ? 12 : hour % 12;
-  final suffix = hour < 12 ? 'AM' : 'PM';
+  final normalizedHour = hour % 24;
+  final h12 = normalizedHour % 12 == 0 ? 12 : normalizedHour % 12;
+  final suffix = normalizedHour < 12 ? 'AM' : 'PM';
   return '$h12 $suffix';
 }
 
@@ -600,7 +642,9 @@ class _TrendLinePainter extends CustomPainter {
 
     final points = <Offset>[];
     final drawn = <Offset>[]; // sirf hasData points (complete slots)
-    final horizontalStep = data.length > 1 ? size.width / (data.length - 1) : 0.0;
+    final horizontalStep = data.length > 1
+        ? size.width / (data.length - 1)
+        : 0.0;
     for (var i = 0; i < data.length; i++) {
       final value = data[i].value.clamp(0.0, maxKw);
       final x = i * horizontalStep;

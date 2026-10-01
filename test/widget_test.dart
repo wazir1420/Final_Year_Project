@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:finalyearproject/main.dart';
+import 'package:finalyearproject/controllers/analytics_controller.dart';
 import 'package:finalyearproject/models/meter_summary_model.dart';
 import 'package:finalyearproject/models/ke_tariff_model.dart';
 import 'package:finalyearproject/services/auth_service.dart';
@@ -18,6 +19,34 @@ import 'package:finalyearproject/widgets/dashboard_widgets.dart';
 void main() {
   test('MyApp instantiates', () {
     expect(const MyApp(), isNotNull);
+  });
+
+  test('analytics filters store and reset time, weekday, and date ranges', () {
+    final controller = AnalyticsController();
+
+    controller.selectDay();
+    controller.applyDayFilter(startHour: 9, endHour: 13);
+    expect(controller.dayStartHour.value, 9);
+    expect(controller.dayEndHour.value, 13);
+    expect(controller.hasActiveFilter, isTrue);
+
+    controller.selectWeek();
+    controller.applyWeekFilter(startDay: 1, endDay: 4);
+    expect(controller.weekStartDay.value, 1);
+    expect(controller.weekEndDay.value, 4);
+
+    controller.selectMonth();
+    controller.applyMonthFilter(
+      start: DateTime(2026, 9, 1),
+      end: DateTime(2026, 9, 15),
+    );
+    expect(controller.monthFilterStart.value, DateTime(2026, 9, 1));
+    expect(controller.monthFilterEnd.value, DateTime(2026, 9, 15));
+
+    controller.resetCurrentFilter();
+    expect(controller.monthFilterStart.value, isNull);
+    expect(controller.monthFilterEnd.value, isNull);
+    expect(controller.hasActiveFilter, isFalse);
   });
 
   test('email validator rejects malformed addresses', () {

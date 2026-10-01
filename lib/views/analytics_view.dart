@@ -78,6 +78,18 @@ class _Header extends GetView<AnalyticsController> {
                   ),
                 ),
               ),
+              Obx(
+                () => IconButton(
+                  icon: Icon(
+                    controller.hasActiveFilter
+                        ? Icons.filter_alt_rounded
+                        : Icons.filter_alt_outlined,
+                    color: controller.hasActiveFilter ? kBlue : kMuted,
+                  ),
+                  onPressed: () => _showAnalyticsFilter(context, controller),
+                  tooltip: 'analytics_filter'.tr,
+                ),
+              ),
               IconButton(
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
@@ -104,6 +116,280 @@ class _Header extends GetView<AnalyticsController> {
   );
 }
 
+void _showAnalyticsFilter(
+  BuildContext context,
+  AnalyticsController controller,
+) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => _AnalyticsFilterSheet(controller: controller),
+  );
+}
+
+class _AnalyticsFilterSheet extends StatefulWidget {
+  final AnalyticsController controller;
+
+  const _AnalyticsFilterSheet({required this.controller});
+
+  @override
+  State<_AnalyticsFilterSheet> createState() => _AnalyticsFilterSheetState();
+}
+
+class _AnalyticsFilterSheetState extends State<_AnalyticsFilterSheet> {
+  late int _startHour;
+  late int _endHour;
+  late int _startDay;
+  late int _endDay;
+  late DateTimeRange _monthRange;
+  String? _error;
+
+  AnalyticsController get controller => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _startHour = controller.dayStartHour.value;
+    _endHour = controller.dayEndHour.value;
+    _startDay = controller.weekStartDay.value;
+    _endDay = controller.weekEndDay.value;
+    _monthRange = _boundedMonthRange();
+  }
+
+  DateTimeRange _boundedMonthRange() {
+    final first = DateUtils.dateOnly(controller.historyStartDate);
+    final last = DateUtils.dateOnly(controller.historyEndDate);
+    var start = DateUtils.dateOnly(controller.selectedMonthStart);
+    var end = DateUtils.dateOnly(controller.selectedMonthEnd);
+    if (start.isBefore(first)) start = first;
+    if (start.isAfter(last)) start = last;
+    if (end.isAfter(last)) end = last;
+    if (end.isBefore(start)) end = start;
+    return DateTimeRange(start: start, end: end);
+  }
+
+  Future<void> _pickMonthRange() async {
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateUtils.dateOnly(controller.historyStartDate),
+      lastDate: DateUtils.dateOnly(controller.historyEndDate),
+      initialDateRange: _monthRange,
+      helpText: 'analytics_filter_choose_dates'.tr,
+    );
+    if (range == null || !mounted) return;
+    setState(() {
+      _monthRange = DateTimeRange(
+        start: DateUtils.dateOnly(range.start),
+        end: DateUtils.dateOnly(range.end),
+      );
+      _error = null;
+    });
+  }
+
+  void _apply() {
+    switch (controller.selectedPeriod.value) {
+      case AnalyticsPeriod.day:
+        if (_startHour > _endHour) {
+          setState(() => _error = 'analytics_filter_invalid_range'.tr);
+          return;
+        }
+        controller.applyDayFilter(startHour: _startHour, endHour: _endHour);
+      case AnalyticsPeriod.week:
+        if (_startDay > _endDay) {
+          setState(() => _error = 'analytics_filter_invalid_range'.tr);
+          return;
+        }
+        controller.applyWeekFilter(startDay: _startDay, endDay: _endDay);
+      case AnalyticsPeriod.month:
+        if (_monthRange.start.year != _monthRange.end.year ||
+            _monthRange.start.month != _monthRange.end.month) {
+          setState(() => _error = 'analytics_filter_same_month'.tr);
+          return;
+        }
+        controller.applyMonthFilter(
+          start: _monthRange.start,
+          end: _monthRange.end,
+        );
+    }
+    Navigator.pop(context);
+  }
+
+  void _reset() {
+    controller.resetCurrentFilter();
+    Navigator.pop(context);
+  }
+
+  String _hourLabel(int hour) {
+    final hour12 = hour % 12 == 0 ? 12 : hour % 12;
+    return '$hour12 ${hour < 12 ? 'AM' : 'PM'}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final period = controller.selectedPeriod.value;
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'analytics_filter_title'.tr,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: kPrimary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (period == AnalyticsPeriod.day)
+              Row(
+                children: [
+                  Expanded(
+                    child: _dropdown<int>(
+                      label: 'analytics_filter_start_time'.tr,
+                      value: _startHour,
+                      items: List.generate(
+                        24,
+                        (hour) => DropdownMenuItem(
+                          value: hour,
+                          child: Text(_hourLabel(hour)),
+                        ),
+                      ),
+                      onChanged: (value) => setState(() {
+                        _startHour = value!;
+                        _error = null;
+                      }),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _dropdown<int>(
+                      label: 'analytics_filter_end_time'.tr,
+                      value: _endHour,
+                      items: List.generate(
+                        24,
+                        (hour) => DropdownMenuItem(
+                          value: hour,
+                          child: Text(_hourLabel(hour)),
+                        ),
+                      ),
+                      onChanged: (value) => setState(() {
+                        _endHour = value!;
+                        _error = null;
+                      }),
+                    ),
+                  ),
+                ],
+              )
+            else if (period == AnalyticsPeriod.week)
+              Row(
+                children: [
+                  Expanded(
+                    child: _weekdayDropdown(
+                      label: 'analytics_filter_start_day'.tr,
+                      value: _startDay,
+                      onChanged: (value) => setState(() {
+                        _startDay = value!;
+                        _error = null;
+                      }),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _weekdayDropdown(
+                      label: 'analytics_filter_end_day'.tr,
+                      value: _endDay,
+                      onChanged: (value) => setState(() {
+                        _endDay = value!;
+                        _error = null;
+                      }),
+                    ),
+                  ),
+                ],
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _pickMonthRange,
+                icon: const Icon(Icons.calendar_month_outlined),
+                label: Text(
+                  '${MaterialLocalizations.of(context).formatMediumDate(_monthRange.start)} – ${MaterialLocalizations.of(context).formatMediumDate(_monthRange.end)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: const TextStyle(color: Color(0xFFDC2626), fontSize: 12),
+              ),
+            ],
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: _reset,
+                  icon: const Icon(Icons.restart_alt),
+                  label: Text('analytics_filter_reset'.tr),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: _apply,
+                  icon: const Icon(Icons.check),
+                  label: Text('analytics_filter_apply'.tr),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _weekdayDropdown({
+    required String label,
+    required int value,
+    required ValueChanged<int?> onChanged,
+  }) => _dropdown<int>(
+    label: label,
+    value: value,
+    items: List.generate(
+      7,
+      (index) => DropdownMenuItem(
+        value: index + 1,
+        child: Text('weekday_${index + 1}'.tr),
+      ),
+    ),
+    onChanged: onChanged,
+  );
+
+  Widget _dropdown<T>({
+    required String label,
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) => DropdownButtonFormField<T>(
+    initialValue: value,
+    isExpanded: true,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    ),
+    items: items,
+    onChanged: onChanged,
+  );
+}
+
 // ── Scrollable body ───────────────────────────────────────────────────────────
 class _Body extends GetView<AnalyticsController> {
   @override
@@ -127,7 +413,9 @@ class _Body extends GetView<AnalyticsController> {
           SectionLabel('analytics_power_trend'.tr),
           _PowerTrend(),
           SectionLabel(_peakSectionTitle(controller.selectedPeriod.value).tr),
-          _PeakHours(title: _peakSectionTitle(controller.selectedPeriod.value).tr),
+          _PeakHours(
+            title: _peakSectionTitle(controller.selectedPeriod.value).tr,
+          ),
           SectionLabel('analytics_consumption'.tr),
           _ComparisonChart(),
           SectionLabel('analytics_estimated_cost'.tr),
@@ -224,7 +512,11 @@ class _PeakHours extends GetView<AnalyticsController> {
   Widget build(BuildContext context) => Obx(() {
     final cells = controller.heatmap.toList();
     if (cells.isEmpty) return _HourlyMissingHint();
-    return PeakHoursHeatmap(cells: cells, title: title);
+    return PeakHoursHeatmap(
+      cells: cells,
+      title: title,
+      isMonthView: controller.selectedPeriod.value == AnalyticsPeriod.month,
+    );
   });
 }
 

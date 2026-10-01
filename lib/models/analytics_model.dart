@@ -37,7 +37,7 @@ class TrendPoint {
 }
 
 class HeatmapCell {
-  final int hour; // row: 6,9,12,15,18,21
+  final int hour; // start hour of the three-hour row (0,3,...,21)
   final String day; // col label (translated)
   final int dayKey; // 1=Mon..7=Sun (language-independent order)
   final double intensity; // 0.0 – 1.0  (raw kWh normalised)

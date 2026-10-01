@@ -15,6 +15,13 @@ class AnalyticsController extends GetxController {
   List<HourlyUsage> _allHourly = [];
   int _loadVersion = 0;
 
+  final dayStartHour = 0.obs;
+  final dayEndHour = 23.obs;
+  final weekStartDay = 1.obs;
+  final weekEndDay = 7.obs;
+  final monthFilterStart = Rxn<DateTime>();
+  final monthFilterEnd = Rxn<DateTime>();
+
   // ── Observables ─────────────────────────────────────────────────────────
   final selectedPeriod = AnalyticsPeriod.week.obs;
   final isLoading = true.obs;
@@ -36,9 +43,8 @@ class AnalyticsController extends GetxController {
 
   /// Deltas ke liye lowercase form; Urdu mein lowercase nahi hota to wahi
   /// translated word return karte hain.
-  String get periodLabelLower => isEnglish
-      ? periodLabel.toLowerCase()
-      : periodLabel;
+  String get periodLabelLower =>
+      isEnglish ? periodLabel.toLowerCase() : periodLabel;
 
   bool get isEnglish {
     if (Get.isRegistered<LanguageController>()) {
@@ -63,6 +69,79 @@ class AnalyticsController extends GetxController {
   void selectDay() => _setPeriod(AnalyticsPeriod.day);
   void selectWeek() => _setPeriod(AnalyticsPeriod.week);
   void selectMonth() => _setPeriod(AnalyticsPeriod.month);
+
+  bool get hasActiveFilter => switch (selectedPeriod.value) {
+    AnalyticsPeriod.day => dayStartHour.value != 0 || dayEndHour.value != 23,
+    AnalyticsPeriod.week => weekStartDay.value != 1 || weekEndDay.value != 7,
+    AnalyticsPeriod.month => monthFilterStart.value != null,
+  };
+
+  DateTime get selectedMonthStart =>
+      monthFilterStart.value ??
+      DateTime(DateTime.now().year, DateTime.now().month);
+
+  DateTime get selectedMonthEnd =>
+      monthFilterEnd.value ?? _dateOnly(DateTime.now());
+
+  DateTime get historyStartDate {
+    final dates = [
+      ..._allUsage.map((entry) => entry.date),
+      ..._allHourly.map((entry) => _dateOnly(entry.hourStart)),
+    ];
+    if (dates.isEmpty) return _dateOnly(DateTime.now());
+    return dates.reduce((a, b) => a.isBefore(b) ? a : b);
+  }
+
+  DateTime get historyEndDate {
+    final dates = [
+      ..._allUsage.map((entry) => entry.date),
+      ..._allHourly.map((entry) => _dateOnly(entry.hourStart)),
+    ];
+    if (dates.isEmpty) return _dateOnly(DateTime.now());
+    return dates.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
+
+  void applyDayFilter({required int startHour, required int endHour}) {
+    if (startHour < 0 || endHour > 23 || startHour > endHour) return;
+    dayStartHour.value = startHour;
+    dayEndHour.value = endHour;
+    _updatePeriod();
+  }
+
+  void applyWeekFilter({required int startDay, required int endDay}) {
+    if (startDay < 1 || endDay > 7 || startDay > endDay) return;
+    weekStartDay.value = startDay;
+    weekEndDay.value = endDay;
+    _updatePeriod();
+  }
+
+  void applyMonthFilter({required DateTime start, required DateTime end}) {
+    final first = _dateOnly(start);
+    final last = _dateOnly(end);
+    if (last.isBefore(first) ||
+        first.month != last.month ||
+        first.year != last.year) {
+      return;
+    }
+    monthFilterStart.value = first;
+    monthFilterEnd.value = last;
+    _updatePeriod();
+  }
+
+  void resetCurrentFilter() {
+    switch (selectedPeriod.value) {
+      case AnalyticsPeriod.day:
+        dayStartHour.value = 0;
+        dayEndHour.value = 23;
+      case AnalyticsPeriod.week:
+        weekStartDay.value = 1;
+        weekEndDay.value = 7;
+      case AnalyticsPeriod.month:
+        monthFilterStart.value = null;
+        monthFilterEnd.value = null;
+    }
+    _updatePeriod();
+  }
 
   void _setPeriod(AnalyticsPeriod p) {
     if (selectedPeriod.value == p) return;
@@ -104,28 +183,38 @@ class AnalyticsController extends GetxController {
         previousStart = today.subtract(const Duration(days: 1));
         previousEnd = previousStart;
       case AnalyticsPeriod.week:
-        start = today.subtract(Duration(days: today.weekday - 1));
-        end = start.add(const Duration(days: 6));
+        final weekStart = today.subtract(Duration(days: today.weekday - 1));
+        start = weekStart.add(Duration(days: weekStartDay.value - 1));
+        end = weekStart.add(Duration(days: weekEndDay.value - 1));
         previousStart = start.subtract(const Duration(days: 7));
-        previousEnd = start.subtract(const Duration(days: 1));
+        previousEnd = end.subtract(const Duration(days: 7));
       case AnalyticsPeriod.month:
-        start = DateTime(today.year, today.month);
-        end = today;
-        previousStart = DateTime(today.year, today.month - 1);
+        start = _dateOnly(selectedMonthStart);
+        end = _dateOnly(selectedMonthEnd);
+        final previousMonth = DateTime(start.year, start.month - 1);
         final previousMonthDays = DateTime(
-          previousStart.year,
-          previousStart.month + 1,
+          previousMonth.year,
+          previousMonth.month + 1,
           0,
         ).day;
+        previousStart = DateTime(
+          previousMonth.year,
+          previousMonth.month,
+          start.day < previousMonthDays ? start.day : previousMonthDays,
+        );
         previousEnd = DateTime(
-          previousStart.year,
-          previousStart.month,
-          today.day < previousMonthDays ? today.day : previousMonthDays,
+          previousMonth.year,
+          previousMonth.month,
+          end.day < previousMonthDays ? end.day : previousMonthDays,
         );
     }
 
-    final current = _range(start, end);
-    final previous = _range(previousStart, previousEnd);
+    final current = selectedPeriod.value == AnalyticsPeriod.day
+        ? _hourlyDailyUsage(start, dayStartHour.value, dayEndHour.value)
+        : _range(start, end);
+    final previous = selectedPeriod.value == AnalyticsPeriod.day
+        ? _hourlyDailyUsage(previousStart, dayStartHour.value, dayEndHour.value)
+        : _range(previousStart, previousEnd);
     final currentTotal = _total(current);
     final previousTotal = _total(previous);
     final currentCost = _estimateRangeCost(current);
@@ -157,12 +246,33 @@ class AnalyticsController extends GetxController {
       _rebuildHeatmap(start, end);
       return;
     }
-    dailyStats.assignAll(_buildStats(start, end, previousStart, previousEnd));
+    dailyStats.assignAll(_buildStats(start, current, previous, previousStart));
     _rebuildTrend(start, end);
     _rebuildHeatmap(start, end);
   }
 
-  /// Peak hours heatmap: rows = time slots (6,9,12,15,18,21),
+  List<DatedDailyUsage> _hourlyDailyUsage(
+    DateTime date,
+    int startHour,
+    int endHour,
+  ) {
+    final entries = _allHourly.where((entry) {
+      final entryDate = _dateOnly(entry.hourStart);
+      return entryDate == date &&
+          entry.hour >= startHour &&
+          entry.hour <= endHour;
+    });
+    final matching = entries.toList();
+    if (matching.isEmpty) return const [];
+    return [
+      DatedDailyUsage(
+        date: date,
+        kwh: matching.fold(0.0, (total, entry) => total + entry.kwh),
+      ),
+    ];
+  }
+
+  /// Usage heatmap: rows = three-hour slots covering the full day,
   /// columns period ke hisaab se:
   /// - Day → 1 column (aaj ka slot pattern)
   /// - Week → 7 columns (Mon..Sun = peak days)
@@ -173,7 +283,10 @@ class AnalyticsController extends GetxController {
         .where(
           (entry) =>
               !entry.hourStart.isBefore(start) &&
-              entry.hourStart.isBefore(endExclusive),
+              entry.hourStart.isBefore(endExclusive) &&
+              (selectedPeriod.value != AnalyticsPeriod.day ||
+                  (entry.hour >= dayStartHour.value &&
+                      entry.hour <= dayEndHour.value)),
         )
         .toList();
     if (inRange.isEmpty) {
@@ -181,7 +294,7 @@ class AnalyticsController extends GetxController {
       return;
     }
 
-    const slots = [6, 9, 12, 15, 18, 21];
+    const slots = [0, 3, 6, 9, 12, 15, 18, 21];
 
     // Column key: Day → sab 1; Week → weekday (1..7); Month → week bucket
     int columnKeyFor(DateTime ts) {
@@ -195,21 +308,23 @@ class AnalyticsController extends GetxController {
       }
     }
 
-    int columnCount() {
+    List<int> columnKeys() {
       switch (selectedPeriod.value) {
         case AnalyticsPeriod.day:
-          return 1;
+          return [1];
         case AnalyticsPeriod.week:
-          return 7;
+          return List.generate(
+            weekEndDay.value - weekStartDay.value + 1,
+            (index) => weekStartDay.value + index,
+          );
         case AnalyticsPeriod.month:
-          return ((DateTime(start.year, start.month + 1, 0).day - 1) ~/ 7) + 1;
+          return [1, 2, 3, 4, 5];
       }
     }
 
     final byCell = <String, List<double>>{};
     for (final entry in inRange) {
-      final slot = slots.lastWhere((s) => entry.hour >= s, orElse: () => 0);
-      if (slot == 0) continue; // 0–5 baje wali readings heatmap se bahar
+      final slot = slots.lastWhere((startHour) => entry.hour >= startHour);
       final key = '${columnKeyFor(entry.hourStart)}-$slot';
       byCell.putIfAbsent(key, () => []).add(entry.kwh);
     }
@@ -222,7 +337,7 @@ class AnalyticsController extends GetxController {
     heatmap.clear();
     if (maxCell <= 0) return;
     for (final slot in slots) {
-      for (int c = 1; c <= columnCount(); c++) {
+      for (final c in columnKeys()) {
         final avg = cellAvgs['$c-$slot'] ?? 0.0;
         heatmap.add(
           HeatmapCell(
@@ -243,7 +358,7 @@ class AnalyticsController extends GetxController {
       case AnalyticsPeriod.week:
         return 'weekday_$c'.tr;
       case AnalyticsPeriod.month:
-        return 'W$c';
+        return 'Week$c';
     }
   }
 
@@ -270,10 +385,11 @@ class AnalyticsController extends GetxController {
         .where(
           (entry) =>
               !entry.hourStart.isBefore(start) &&
-              entry.hourStart.isBefore(endExclusive),
+              entry.hourStart.isBefore(endExclusive) &&
+              entry.hour >= dayStartHour.value &&
+              entry.hour <= dayEndHour.value,
         )
         .toList();
-    if (inRange.isEmpty) return const [];
 
     final byHour = List.generate(24, (_) => 0.0);
     final hourHasData = List.generate(24, (_) => false);
@@ -282,29 +398,34 @@ class AnalyticsController extends GetxController {
       hourHasData[entry.hour] = true;
     }
     return List.generate(
-      24,
-      (h) => TrendPoint(
-        label: '$h',
-        value: byHour[h],
-        hasData: hourHasData[h],
-      ),
-    );
+          dayEndHour.value - dayStartHour.value + 1,
+          (index) => dayStartHour.value + index,
+        )
+        .map(
+          (hour) => TrendPoint(
+            label: _hourLabel(hour),
+            value: byHour[hour],
+            hasData: hourHasData[hour],
+          ),
+        )
+        .toList();
   }
 
   /// Week view: 7 din ke slots — din COMPLETE hone par slot bharta hai.
   List<TrendPoint> _trendFromDaily(DateTime start, DateTime end) {
     final inRange = _range(start, end);
     final today = _dateOnly(DateTime.now());
-    final byWeekday = List.generate(7, (_) => 0.0);
+    final count = end.difference(start).inDays + 1;
+    final byWeekday = List.generate(count, (_) => 0.0);
     for (final entry in inRange) {
-      final idx = entry.date.weekday - 1; // Mon=0..Sun=6
-      if (idx >= 0 && idx < 7) byWeekday[idx] += entry.kwh;
+      final idx = entry.date.difference(start).inDays;
+      if (idx >= 0 && idx < count) byWeekday[idx] += entry.kwh;
     }
-    return List.generate(7, (i) {
+    return List.generate(count, (i) {
       final dayDate = start.add(Duration(days: i));
       final slotDone = dayDate.isBefore(today); // din poora guzar gaya
       return TrendPoint(
-        label: 'weekday_${i + 1}'.tr,
+        label: 'weekday_${dayDate.weekday}'.tr,
         value: byWeekday[i],
         hasData: slotDone,
       );
@@ -314,7 +435,7 @@ class AnalyticsController extends GetxController {
   /// Month view: W1..Wn — hafta COMPLETE hone par slot bharta hai.
   List<TrendPoint> _trendFromDailyBucketed(DateTime start, DateTime end) {
     final inRange = _range(start, end);
-    final count = (DateTime(start.year, start.month + 1, 0).day + 6) ~/ 7;
+    const count = 5;
     final today = _dateOnly(DateTime.now());
     final byBucket = List.generate(count, (_) => 0.0);
     for (final entry in inRange) {
@@ -322,8 +443,16 @@ class AnalyticsController extends GetxController {
       if (bucket < count) byBucket[bucket] += entry.kwh;
     }
     return List.generate(count, (i) {
-      final weekLastDay = DateTime(start.year, start.month, i * 7 + 7);
-      final slotDone = weekLastDay.isBefore(today); // hafta poora guzar gaya
+      final weekStart = DateTime(start.year, start.month, i * 7 + 1);
+      final lastMonthDay = DateTime(start.year, start.month + 1, 0).day;
+      final weekEnd = DateTime(
+        start.year,
+        start.month,
+        i * 7 + 7 < lastMonthDay ? i * 7 + 7 : lastMonthDay,
+      );
+      final overlapsFilter =
+          !weekEnd.isBefore(start) && !weekStart.isAfter(end);
+      final slotDone = overlapsFilter && weekEnd.isBefore(today);
       return TrendPoint(
         label: 'W${i + 1}',
         value: byBucket[i],
@@ -338,23 +467,23 @@ class AnalyticsController extends GetxController {
 
   List<DailyStats> _buildStats(
     DateTime start,
-    DateTime end,
+    List<DatedDailyUsage> current,
+    List<DatedDailyUsage> previous,
     DateTime previousStart,
-    DateTime previousEnd,
   ) {
-    final current = _range(start, end);
-    final previous = _range(previousStart, previousEnd);
     final currentByBucket = _bucketUsage(current, start);
     final previousByBucket = _bucketUsage(previous, previousStart);
     final count = switch (selectedPeriod.value) {
       AnalyticsPeriod.day => 1,
-      AnalyticsPeriod.week => 7,
-      AnalyticsPeriod.month =>
-        (DateTime(start.year, start.month + 1, 0).day + 6) ~/ 7,
+      AnalyticsPeriod.week => weekEndDay.value - weekStartDay.value + 1,
+      AnalyticsPeriod.month => 5,
     };
     final labels = switch (selectedPeriod.value) {
       AnalyticsPeriod.day => ['today'.tr],
-      AnalyticsPeriod.week => List.generate(7, (i) => 'weekday_${i + 1}'.tr),
+      AnalyticsPeriod.week => List.generate(
+        count,
+        (index) => 'weekday_${start.add(Duration(days: index)).weekday}'.tr,
+      ),
       AnalyticsPeriod.month => List.generate(count, (index) => 'W${index + 1}'),
     };
     final currentTotal = _total(current);
@@ -423,6 +552,11 @@ class AnalyticsController extends GetxController {
 
   String _dateLabel(DateTime date) {
     return '${'weekday_${date.weekday}'.tr} ${date.day}';
+  }
+
+  String _hourLabel(int hour) {
+    final hour12 = hour % 12 == 0 ? 12 : hour % 12;
+    return '$hour12 ${hour < 12 ? 'AM' : 'PM'}';
   }
 
   // ── Formatters used in the View ──────────────────────────────────────────
