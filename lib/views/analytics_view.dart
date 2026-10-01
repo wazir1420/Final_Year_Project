@@ -4,6 +4,7 @@ import '../controllers/analytics_controller.dart';
 import '../controllers/theme_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/analytics_widgets.dart';
+import '../widgets/app_bottom_nav_item.dart';
 import '../services/route_observer.dart';
 
 class AnalyticsView extends StatefulWidget {
@@ -605,20 +606,25 @@ class _BottomNav extends GetView<AnalyticsController> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _NavItem(
+            AppBottomNavItem(
               Icons.dashboard_rounded,
               'nav_dashboard'.tr,
               false,
               () => Get.offNamed('/dashboard', arguments: Get.arguments),
             ),
-            _NavItem(Icons.show_chart_rounded, 'nav_analytics'.tr, true, () {}),
-            _NavItem(
+            AppBottomNavItem(
+              Icons.show_chart_rounded,
+              'nav_analytics'.tr,
+              true,
+              () {},
+            ),
+            AppBottomNavItem(
               Icons.receipt_long_rounded,
               'nav_bills'.tr,
               false,
               () => Get.toNamed('/bills', arguments: Get.arguments),
             ),
-            _NavItem(
+            AppBottomNavItem(
               Icons.settings_rounded,
               'nav_settings'.tr,
               false,
@@ -629,35 +635,4 @@ class _BottomNav extends GetView<AnalyticsController> {
       ),
     ),
   );
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-  const _NavItem(this.icon, this.label, this.isActive, this.onTap);
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? kBlue : kMuted;
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

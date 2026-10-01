@@ -14,11 +14,35 @@ import 'package:finalyearproject/models/meter_summary_model.dart';
 import 'package:finalyearproject/models/ke_tariff_model.dart';
 import 'package:finalyearproject/services/auth_service.dart';
 import 'package:finalyearproject/services/firebase_history_service.dart';
+import 'package:finalyearproject/widgets/app_bottom_nav_item.dart';
 import 'package:finalyearproject/widgets/dashboard_widgets.dart';
 
 void main() {
   test('MyApp instantiates', () {
     expect(const MyApp(), isNotNull);
+  });
+
+  testWidgets('bottom navigation item responds across its full hit area', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Row(
+            children: [
+              AppBottomNavItem(Icons.home, 'Home', false, () => taps++),
+              AppBottomNavItem(Icons.settings, 'Settings', false, () {}),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final firstItem = tester.getRect(find.byType(AppBottomNavItem).first);
+    await tester.tapAt(Offset(firstItem.left + 4, firstItem.top + 4));
+
+    expect(taps, 1);
   });
 
   test('analytics filters store and reset time, weekday, and date ranges', () {

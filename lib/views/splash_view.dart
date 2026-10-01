@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../widgets/ripple_painter.dart';
 import '../widgets/logo_mark.dart';
-import '../widgets/floating_particles.dart';
 
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
@@ -14,12 +12,10 @@ class SplashView extends StatefulWidget {
 
 class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   // ── Animation controllers ──────────────────────────────────────────────────
-  late final AnimationController _rippleCtrl; // ripple wave loop
   late final AnimationController _arcCtrl; // spinning arc loop
   late final AnimationController _pulseCtrl; // pulse ring loop
   late final AnimationController _entryCtrl; // one-shot entry sequence
   late final AnimationController _loaderCtrl; // loader bar one-shot
-  late final AnimationController _particleCtrl; // floating dots loop
 
   // ── Entry sequence animations ──────────────────────────────────────────────
   late final Animation<double> _markScale;
@@ -48,10 +44,6 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
   }
 
   void _setupControllers() {
-    _rippleCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3600),
-    )..repeat();
     _arcCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 5800),
@@ -60,10 +52,6 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
-    _particleCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 5000),
-    )..repeat();
     _entryCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
@@ -149,12 +137,10 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _rippleCtrl.dispose();
     _arcCtrl.dispose();
     _pulseCtrl.dispose();
     _entryCtrl.dispose();
     _loaderCtrl.dispose();
-    _particleCtrl.dispose();
     super.dispose();
   }
 
@@ -166,19 +152,6 @@ class _SplashViewState extends State<SplashView> with TickerProviderStateMixin {
         children: [
           // ── Background grid (very faint) ────────────────────────────────────
           Positioned.fill(child: _GridBackground()),
-
-          // ── Floating particles ───────────────────────────────────────────────
-          Positioned.fill(child: FloatingParticles(animation: _particleCtrl)),
-
-          // ── Ripple waves ─────────────────────────────────────────────────────
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _rippleCtrl,
-              builder: (context, child) => CustomPaint(
-                painter: RipplePainter(progress: _rippleCtrl.value),
-              ),
-            ),
-          ),
 
           // ── Corner accents ───────────────────────────────────────────────────
           ..._cornerAccents(),
@@ -428,9 +401,15 @@ class _FeaturePills extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      _Pill(dotColor: const Color(0xFF10B981), label: 'splash_live_monitoring'.tr),
+      _Pill(
+        dotColor: const Color(0xFF10B981),
+        label: 'splash_live_monitoring'.tr,
+      ),
       const SizedBox(width: 10),
-      _Pill(dotColor: const Color(0xFF60A5FA), label: 'splash_ml_predictions'.tr),
+      _Pill(
+        dotColor: const Color(0xFF60A5FA),
+        label: 'splash_ml_predictions'.tr,
+      ),
     ],
   );
 }
