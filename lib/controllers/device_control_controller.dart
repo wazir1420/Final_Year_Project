@@ -54,14 +54,17 @@ class DeviceControlController extends GetxController {
   }
 
   Future<void> setDeviceState(DeviceStatus device, bool state) async {
+    if (updatingDevices.contains(device.id)) return;
+    final index = devices.indexWhere((item) => item.id == device.id);
+    if (index < 0) return;
+
+    final previousState = devices[index].desiredState;
     updatingDevices.add(device.id);
+    devices[index] = devices[index].copyWith(desiredState: state);
     try {
       await _service.setDesiredState(device.id, state);
-      final index = devices.indexWhere((item) => item.id == device.id);
-      if (index >= 0) {
-        devices[index] = devices[index].copyWith(desiredState: state);
-      }
     } catch (_) {
+      devices[index] = devices[index].copyWith(desiredState: previousState);
       Get.snackbar(
         'device_update_failed'.tr,
         'device_update_failed_message'.tr,
@@ -69,7 +72,6 @@ class DeviceControlController extends GetxController {
       );
     } finally {
       updatingDevices.remove(device.id);
-      refreshDevices();
     }
   }
 }

@@ -162,20 +162,19 @@ class _DeviceTile extends StatelessWidget {
               ],
             ),
           ),
+          Switch.adaptive(
+            value: device.desiredState,
+            onChanged: isUpdating ? null : onChanged,
+            activeTrackColor: kGreenDot,
+          ),
           if (isUpdating)
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14),
+              padding: EdgeInsets.only(left: 4, right: 12),
               child: SizedBox(
-                width: 20,
-                height: 20,
+                width: 16,
+                height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: kBlue),
               ),
-            )
-          else
-            Switch.adaptive(
-              value: device.desiredState,
-              onChanged: onChanged,
-              activeTrackColor: kGreenDot,
             ),
         ],
       ),
