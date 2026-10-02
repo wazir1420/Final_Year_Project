@@ -1,10 +1,31 @@
-# PowerInsight
+<div align="center">
 
-**PowerInsight** is an IoT-based energy monitoring and appliance-control system built with an ESP32, an ABB B24 energy meter, Firebase Realtime Database, and a Flutter mobile app.
+# ⚡ PowerInsight
 
-The meter sends live electrical readings to Firebase, where the app presents them as a dashboard, usage analytics, and estimated K-Electric bills. A separate relay-control path lets users send appliance commands from the app and view the state reported by the ESP32.
+### *Smarter energy insights. Simpler appliance control.*
 
-## Highlights
+An IoT energy-monitoring and appliance-control app powered by **ESP32**, **ABB B24**, **Firebase**, and **Flutter**.
+
+<p>
+  <img src="https://img.shields.io/badge/Flutter-3.38%2B-02569B?logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Dart-3.10%2B-0175C2?logo=dart&logoColor=white" alt="Dart">
+  <img src="https://img.shields.io/badge/Firebase-Realtime%20Database-FFCA28?logo=firebase&logoColor=black" alt="Firebase Realtime Database">
+  <img src="https://img.shields.io/badge/Interface-English%20%7C%20Urdu-2E8B57" alt="English and Urdu">
+</p>
+
+[Explore features](#-highlights) · [View screenshots](#-screenshots) · [Get started](#-getting-started)
+
+</div>
+
+---
+
+## 🧭 At a glance
+
+| ⚡ Monitor | 📊 Understand | 🎛️ Control |
+|---|---|---|
+| Live meter readings | Trends, heatmaps, and bill estimates | ESP32-connected relays |
+
+## ✨ Highlights
 
 - **Live energy monitoring:** voltage, current, active power, frequency, power factor, and cumulative energy.
 - **Day, week, and month analytics:** summary cards, consumption and cost charts, usage trends, and peak-usage heatmaps.
@@ -14,7 +35,7 @@ The meter sends live electrical readings to Firebase, where the app presents the
 - **English and Urdu:** switch the app language in-session; light and dark themes are supported.
 - **Profile and preferences:** account details, profile photo, and app settings.
 
-## System overview
+## 🔄 System overview
 
 ```text
  ABB B24 energy meter
@@ -35,7 +56,7 @@ The meter sends live electrical readings to Firebase, where the app presents the
 
 Meter readings and device-control commands are separate data flows. For device control, the app writes the requested state to Firebase. The ESP32 polls for commands, drives its configured relay, and writes the applied state back for the app to display.
 
-## Application screens
+## 📱 Application screens
 
 | Screen | Overview |
 |---|---|
@@ -52,26 +73,58 @@ Meter readings and device-control commands are separate data flows. For device c
 | Profile | User details and profile photo |
 | Admin panel | Customer and meter administration |
 
-## Screenshots
+## 🖼️ Screenshots
 
-| | |
+<details open>
+<summary><strong>Dashboard and device control</strong></summary>
+
+<br>
+
+| Live dashboard | Appliance controls |
 |---|---|
-| ![Splash screen](screenshots/splash.jpeg) | ![Login screen](screenshots/login.jpeg) |
-| *Splash* | *Login* |
-| ![Meter list](screenshots/meters_list.jpeg) | ![Dashboard](screenshots/dashboard.jpeg) |
-| *Assigned meters* | *Live dashboard* |
-| ![Device controls](screenshots/device_control.jpeg) | ![Day analytics](screenshots/analytics_day.jpeg) |
-| *Relay controls and connection status* | *Hourly trend and peak hours* |
-| ![Weekly analytics](screenshots/analytics_week.jpeg) | ![Monthly analytics](screenshots/analytics_month.jpeg) |
-| *Daily comparison and peak days* | *Monthly comparison and peak weeks* |
-| ![Bill estimate](screenshots/bills.jpeg) | ![Tariff settings](screenshots/tariff.jpeg) |
-| *Estimated K-Electric bill* | *Tariff configuration* |
-| ![Settings in Urdu](screenshots/setting.jpeg) | ![Profile](screenshots/profile.jpeg) |
-| *Settings in Urdu* | *User profile* |
-| ![Admin panel](screenshots/admin.jpeg) | |
-| *Customer and meter administration* | |
+| <img src="screenshots/dashboard.jpeg" alt="PowerInsight live dashboard" width="300"> | <img src="screenshots/device_control.jpeg" alt="PowerInsight device control" width="300"> |
 
-## Hardware
+</details>
+
+<details>
+<summary><strong>Analytics and billing</strong></summary>
+
+<br>
+
+| Day analytics | Week analytics |
+|---|---|
+| <img src="screenshots/analytics_day.jpeg" alt="Daily usage analytics" width="300"> | <img src="screenshots/analytics_week.jpeg" alt="Weekly usage analytics" width="300"> |
+
+| Month analytics | Bill estimate |
+|---|---|
+| <img src="screenshots/analytics_month.jpeg" alt="Monthly usage analytics" width="300"> | <img src="screenshots/bills.jpeg" alt="Estimated electricity bill" width="300"> |
+
+</details>
+
+<details>
+<summary><strong>Accounts and app settings</strong></summary>
+
+<br>
+
+| Splash | Login |
+|---|---|
+| <img src="screenshots/splash.jpeg" alt="PowerInsight splash screen" width="300"> | <img src="screenshots/login.jpeg" alt="PowerInsight login screen" width="300"> |
+
+| Meter list | Tariff settings |
+|---|---|
+| <img src="screenshots/meters_list.jpeg" alt="Assigned energy meters" width="300"> | <img src="screenshots/tariff.jpeg" alt="Tariff configuration" width="300"> |
+
+| Settings in Urdu | User profile |
+|---|---|
+| <img src="screenshots/setting.jpeg" alt="Settings in Urdu" width="300"> | <img src="screenshots/profile.jpeg" alt="PowerInsight user profile" width="300"> |
+
+| Admin panel |
+|---|
+| <img src="screenshots/admin.jpeg" alt="Customer and meter administration" width="300"> |
+
+</details>
+
+## 🧰 Hardware
 
 | Component | Configuration |
 |---|---|
@@ -86,7 +139,7 @@ The firmware uses NTP time synchronization (UTC+5) to label daily and hourly his
 
 > **Device power figures:** the control screen reports that individual appliance power is not measured. The firmware's relay status payload includes configured nominal estimates, not readings from per-appliance power sensors; the ABB meter measures the installation's aggregate consumption.
 
-## Firebase data model
+## ☁️ Firebase data model
 
 ```text
 meters/{meterId}/
@@ -114,7 +167,7 @@ devices/{deviceId}/
 - `devices/{deviceId}/state` carries the app's requested state. The ESP32 updates `applied` after handling the command.
 - The control page polls Firebase for status every two seconds; firmware polls for commands every 500 ms.
 
-## Project structure
+## 🗂️ Project structure
 
 ```text
 lib/
@@ -134,7 +187,7 @@ sketch_sep26a/
 screenshots/
 ```
 
-## Getting started
+## 🚀 Getting started
 
 ### Requirements
 
@@ -177,10 +230,10 @@ Never commit Wi-Fi passwords, service credentials, or other private configuratio
 
 > **Electrical safety:** mains-voltage wiring and relay installation should be designed and checked by a qualified person. Disconnect power before wiring, use correctly rated and enclosed components, and follow local electrical codes.
 
-## Bill estimates
+## 🧾 Bill estimates
 
 The tariff calculator is covered by regression tests based on K-Electric bill examples included in the test suite. Estimates depend on the configured tariff profile and the available consumption history; they are informational and may differ from the final bill.
 
-## License
+## 📄 License
 
 Academic Final Year Project, 2026. No separate open-source license is currently specified.
