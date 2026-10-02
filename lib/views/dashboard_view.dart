@@ -178,6 +178,7 @@ class _Body extends GetView<DashboardController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _DeviceControlShortcut(onTap: controller.goToDeviceControl),
               SectionLabel('total_consumption'.tr),
               _PowerCard(),
               SectionLabel('phase_parameters'.tr),
@@ -197,6 +198,70 @@ class _Body extends GetView<DashboardController> {
         const _BillsTab(),
         const _SettingsTab(),
       ],
+    ),
+  );
+}
+
+class _DeviceControlShortcut extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _DeviceControlShortcut({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 14),
+    child: Material(
+      color: kCard,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          decoration: BoxDecoration(
+            border: Border.all(color: kBorder),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: kBlueTint,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.power_settings_new_rounded,
+                  color: kBlue,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'device_control'.tr,
+                      style: TextStyle(
+                        color: kPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'device_control_subtitle'.tr,
+                      style: TextStyle(color: kMuted, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: kMuted),
+            ],
+          ),
+        ),
+      ),
     ),
   );
 }

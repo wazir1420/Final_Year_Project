@@ -7,6 +7,7 @@ import '../bindings/analytics_binding.dart';
 import '../bindings/bills_binding.dart';
 import '../bindings/settings_binding.dart';
 import '../controllers/dashboard_controller.dart';
+import '../controllers/device_control_controller.dart';
 import '../controllers/meters_list_controller.dart';
 import '../controllers/login_controller.dart';
 import '../controllers/admin_controller.dart';
@@ -14,6 +15,7 @@ import '../controllers/profile_controller.dart';
 import '../views/analytics_view.dart';
 import '../views/bills_view.dart';
 import '../views/dashboard_view.dart';
+import '../views/device_control_view.dart';
 import '../views/meters_list_view.dart';
 import '../views/ml_prediction_view.dart';
 import '../views/settings_view.dart';
@@ -25,6 +27,7 @@ class AppRoutes {
   static const splash = '/splash';
   static const login = '/login';
   static const dashboard = '/dashboard';
+  static const deviceControl = '/device-control';
   static const meters = '/meters';
   static const metersList =
       meters; // alias, taake login_controller mein naam match ho
@@ -106,6 +109,14 @@ class AppRoutes {
         );
       }),
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: deviceControl,
+      page: () => const DeviceControlView(),
+      binding: BindingsBuilder(() {
+        Get.put(DeviceControlController());
+      }),
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: addCustomer,

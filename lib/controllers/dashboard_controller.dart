@@ -316,6 +316,10 @@ class DashboardController extends GetxController {
     Get.toNamed(AppRoutes.settings, arguments: _dashboardArguments);
   }
 
+  void goToDeviceControl() {
+    Get.toNamed(AppRoutes.deviceControl);
+  }
+
   Future<void> goToProfile() async {
     final result = await Get.toNamed(
       AppRoutes.profile,
