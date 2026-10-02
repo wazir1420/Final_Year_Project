@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:get/get.dart';
 import '../models/analytics_model.dart';
 import '../models/ke_tariff_model.dart';
@@ -339,12 +341,13 @@ class AnalyticsController extends GetxController {
     for (final slot in slots) {
       for (final c in columnKeys()) {
         final avg = cellAvgs['$c-$slot'] ?? 0.0;
+        final relativeUsage = maxCell > 0 ? avg / maxCell : 0.0;
         heatmap.add(
           HeatmapCell(
             hour: slot,
             day: _heatmapColumnLabel(c),
             dayKey: c,
-            intensity: (avg / maxCell).clamp(0.0, 1.0),
+            intensity: math.sqrt(relativeUsage).clamp(0.0, 1.0),
           ),
         );
       }

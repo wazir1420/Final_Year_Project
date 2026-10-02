@@ -133,11 +133,21 @@ class FirebaseHistoryService {
     // Cumulative → per-hour kWh (meter reset ho to delta 0 rakhte hain).
     entries.sort((a, b) => a.key.compareTo(b.key));
     final hourly = <HourlyUsage>[];
+    var previous = entries.first;
     for (int i = 1; i < entries.length; i++) {
-      final delta = entries[i].value - entries[i - 1].value;
+      final current = entries[i];
+      final isRecoveredDrop =
+          i + 1 < entries.length &&
+          current.value < previous.value &&
+          entries[i + 1].value >= previous.value;
+      // A one-sample dip that immediately recovers is a bad reading, not a reset.
+      if (isRecoveredDrop) continue;
+
+      final delta = current.value - previous.value;
       hourly.add(
-        HourlyUsage(hourStart: entries[i].key, kwh: delta < 0 ? 0.0 : delta),
+        HourlyUsage(hourStart: current.key, kwh: delta < 0 ? 0.0 : delta),
       );
+      previous = current;
     }
     return hourly;
   }

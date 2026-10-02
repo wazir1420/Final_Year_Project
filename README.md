@@ -1,150 +1,186 @@
-# PowerInsight ⚡
+# PowerInsight
 
-IoT-based real-time energy monitoring system for homes — **ESP32 + ABB B24 energy meter + Flutter**.
+**PowerInsight** is an IoT-based energy monitoring and appliance-control system built with an ESP32, an ABB B24 energy meter, Firebase Realtime Database, and a Flutter mobile app.
 
-PowerInsight reads live electricity data (voltage, current, power, power factor, energy) from a Modbus RTU energy meter via ESP32, publishes it to Firebase Realtime Database, and presents it in a clean Flutter app with **daily / weekly / monthly analytics**, usage trend graphs, peak-time heatmaps, and **real K-Electric bill estimation** — all in **English & Urdu (اردو)**.
+The meter sends live electrical readings to Firebase, where the app presents them as a dashboard, usage analytics, and estimated K-Electric bills. A separate relay-control path lets users send appliance commands from the app and view the state reported by the ESP32.
 
----
+## Highlights
 
-## ✨ Features
+- **Live energy monitoring:** voltage, current, active power, frequency, power factor, and cumulative energy.
+- **Day, week, and month analytics:** summary cards, consumption and cost charts, usage trends, and peak-usage heatmaps.
+- **K-Electric bill estimates:** configurable tariff profile and an itemized estimate including applicable adjustments, taxes, and fees.
+- **Appliance controls:** Firebase-backed controls for a bulb, fan, fridge, and spare relay, with requested and ESP32-reported states.
+- **Multiple meters and accounts:** sign-in, meter assignment, customer administration, and meter online status.
+- **English and Urdu:** switch the app language in-session; light and dark themes are supported.
+- **Profile and preferences:** account details, profile photo, and app settings.
 
-| Feature | Description |
+## System overview
+
+```text
+ ABB B24 energy meter
+          │ RS-485 / Modbus RTU
+          ▼
+       ESP32 ────────────────┐
+          │                 │
+          │ meter readings  │ relay commands / status
+          ▼                 ▲
+   Firebase Realtime Database
+          │                 ▲
+          │ REST API        │ REST API
+          ▼                 │
+       Flutter app ─────────┘
+       monitoring, analytics,
+       billing, and controls
+```
+
+Meter readings and device-control commands are separate data flows. For device control, the app writes the requested state to Firebase. The ESP32 polls for commands, drives its configured relay, and writes the applied state back for the app to display.
+
+## Application screens
+
+| Screen | Overview |
 |---|---|
-| 🔴 **Real-time monitoring** | Live voltage, current, power (W), frequency, power factor — refreshes every ~3s |
-| 📈 **Power trend graph** | Day view = 24-hour curve (0h–24h axis, fills hour-by-hour), Week = 7 day slots, Month = week slots (W1–W5) |
-| 🔥 **Peak hours heatmap** | Time slots (6 AM–9 PM) × Day/Week/Month — see exactly *when* you consume the most |
-| 💰 **K-Electric bill estimate** | Real KE tariff slabs (A1-R), FCA, quarterly adjustment, electricity duty, GST, MUCT, TV licence — matches actual bills |
-| 📊 **Monthly comparison** | Bill vs previous months + 5-month average |
-| 🌐 **Bilingual UI** | Full English + Urdu translation, switchable in-session |
-| 👥 **Admin panel** | Add customers, assign meters, manage users |
-| 🤖 **ML prediction** | Next-month usage forecast |
-| 🟢 **Meter online status** | Clock-skew-immune liveness detection from reading timestamps |
+| Login | Account sign-in |
+| Meter list | Assigned meters and their availability |
+| Dashboard | Live meter readings, status, and navigation |
+| Device control | Relay controls and device status |
+| Analytics — day | Hourly usage trend and daily heatmap |
+| Analytics — week | Daily usage trend and weekly heatmap |
+| Analytics — month | Monthly usage trend and peak-week heatmap |
+| Bills | Estimated bill and month comparison |
+| Tariff settings | Tariff profile and bill-adjustment inputs |
+| Settings | Language, theme, account, and app preferences |
+| Profile | User details and profile photo |
+| Admin panel | Customer and meter administration |
 
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────┐   Modbus RTU    ┌──────────┐    HTTPS PUT    ┌─────────────────┐
-│  ABB B24    │ ◄──────────────►│  ESP32   │ ───────────────►│  Firebase RTDB  │
-│ Energy Meter│    RS485        │ (WiFi)   │   every 2s      │  meters/meter1  │
-└─────────────┘                 └──────────┘                 └────────┬────────┘
-                                                                      │
-                                                            ┌─────────▼────────┐
-                                                            │   Flutter App    │
-                                                            │  (GetX, REST)    │
-                                                            │  Android / iOS   │
-                                                            └──────────────────┘
-```
-
-**Data flow:** Meter → (RS485/Modbus) → ESP32 → (WiFi/HTTPS) → Firebase → (REST) → App
-
----
-
-## 🔌 Hardware
-
-| Component | Details |
-|---|---|
-| **Energy meter** | ABB B24 (Modbus RTU slave, ID `10`, 19200 baud, 8E1) |
-| **Controller** | ESP32 (WiFi + dual-core) |
-| **RS485 transceiver** | DE/RE on GPIO 4, RX2 = GPIO 16, TX2 = GPIO 17 |
-| **Registers used** | Voltage `0x5B00`, Current `0x5B0C`, Power `0x5B14`, Frequency `0x5B2C`, PF `0x5B3A`, Energy `0x552C` |
-
-NTP time sync (`pool.ntp.org`, UTC+5) is used for date/hour keys.
-
----
-
-## ☁️ Firebase Realtime Database structure
-
-```
-meters/
-└── meter1/
-    ├── name                      "ABB B24"
-    ├── latest/                   ← live reading (every 2s)
-    │   ├── voltage, current, power, frequency, powerFactor, energy
-    │   └── timestamp             ← server timestamp (.sv)
-    ├── history/                  ← daily cumulative kWh (every 60s)
-    │   └── 2026-10-01: 0.24
-    └── hourly/                   ← hourly cumulative kWh (hour change)
-        └── 2026-10-01/
-            ├── h0: 0.22
-            └── h1: 0.23
-```
-
-- **`history`** → daily consumption deltas → Week trend, Month trend, bill estimates
-- **`hourly`** → hourly deltas → Day power trend (24h) + peak-hours heatmap
-- Cumulative values are stored; the **app computes deltas** (meter resets handled → treated as 0)
-
----
-
-## 📱 App screens
-
-| Screen | What it shows |
-|---|---|
-| **Splash / Login** | Email validation, secure session |
-| **Meters list** | All your meters with online/offline status |
-| **Dashboard** | Live power hero card, voltage/current/PF/frequency tiles |
-| **Analytics** | Day/Week/Month tabs → summary KPIs, power trend, peak heatmap, consumption & cost charts |
-| **Bills** | K-Electric style invoice breakdown, month comparison, tariff settings (phase, FCA, TV count) |
-| **Profile / Settings** | User info, language switch, tariff configuration |
-| **Admin panel** | Customer + meter management |
-
----
-
-## 📱 Screenshots
+## Screenshots
 
 | | |
 |---|---|
-| ![Splash](screenshots/splash.jpeg) | ![Login](screenshots/login.jpeg) |
-| *Splash screen* | *Login* |
-| ![Meters list](screenshots/meters_list.jpeg) | ![Dashboard](screenshots/dashboard.jpeg) |
-| *Meters with live status* | *Real-time dashboard* |
-| ![Analytics Day](screenshots/analytics_day.jpeg) | ![Analytics Week](screenshots/analytics_week.jpeg) |
-| *Analytics — Day (24h trend)* | *Analytics — Week (peak days)* |
-| ![Analytics Month](screenshots/analytics_month.jpeg) | ![Bills](screenshots/bills.jpeg) |
-| *Analytics — Month (peak weeks)* | *K-Electric bill estimate* |
-| ![Tariff settings](screenshots/tariff.jpeg) | ![Urdu setting](screenshots/setting.jpeg) |
-| *Tariff configuration* | *Settings — اردو* |
-| ![Admin](screenshots/admin.jpeg) | ![Profile](screenshots/profile.jpeg) |
-| *Admin panel* | *Profile* |
+| ![Splash screen](screenshots/splash.jpeg) | ![Login screen](screenshots/login.jpeg) |
+| *Splash* | *Login* |
+| ![Meter list](screenshots/meters_list.jpeg) | ![Dashboard](screenshots/dashboard.jpeg) |
+| *Assigned meters* | *Live dashboard* |
+| ![Device controls](screenshots/device_control.jpeg) | ![Day analytics](screenshots/analytics_day.jpeg) |
+| *Relay controls and connection status* | *Hourly trend and peak hours* |
+| ![Weekly analytics](screenshots/analytics_week.jpeg) | ![Monthly analytics](screenshots/analytics_month.jpeg) |
+| *Daily comparison and peak days* | *Monthly comparison and peak weeks* |
+| ![Bill estimate](screenshots/bills.jpeg) | ![Tariff settings](screenshots/tariff.jpeg) |
+| *Estimated K-Electric bill* | *Tariff configuration* |
+| ![Settings in Urdu](screenshots/setting.jpeg) | ![Profile](screenshots/profile.jpeg) |
+| *Settings in Urdu* | *User profile* |
+| ![Admin panel](screenshots/admin.jpeg) | |
+| *Customer and meter administration* | |
 
----
+## Hardware
 
-## 🚀 Getting started
+| Component | Configuration |
+|---|---|
+| Energy meter | ABB B24, Modbus RTU slave ID `10`, `19200` baud, `8E1` |
+| Controller | ESP32 with Wi-Fi |
+| RS-485 direction control | GPIO `4` |
+| ESP32 serial pins | RX2 GPIO `16`, TX2 GPIO `17` |
+| Meter registers | Voltage `0x5B00`, current `0x5B0C`, power `0x5B14`, frequency `0x5B2C`, power factor `0x5B3A`, energy `0x552C` |
+| Relay outputs | Bulb GPIO `25`, fan GPIO `26`, fridge GPIO `27`, spare GPIO `32` |
 
-### Prerequisites
-- Flutter SDK (tested with Dart ^3.10)
-- Android/iOS device or emulator
-- Arduino IDE + ESP32 board support (for the meter firmware)
+The firmware uses NTP time synchronization (UTC+5) to label daily and hourly history records. Relay outputs are configured as active-low. The fridge relay includes a five-minute minimum off-time before it can be switched on again.
 
-### Run the app
+> **Device power figures:** the control screen reports that individual appliance power is not measured. The firmware's relay status payload includes configured nominal estimates, not readings from per-appliance power sensors; the ABB meter measures the installation's aggregate consumption.
+
+## Firebase data model
+
+```text
+meters/{meterId}/
+├── name
+├── latest/
+│   ├── voltage
+│   ├── current
+│   ├── power
+│   ├── frequency
+│   ├── powerFactor
+│   ├── energy
+│   └── timestamp
+├── history/{YYYY-MM-DD}                 # cumulative daily energy
+└── hourly/{YYYY-MM-DD}/h{hour}          # cumulative hourly energy
+
+devices/{deviceId}/
+├── state                                  # requested relay state
+├── applied                                # ESP32-reported relay state
+├── power                                  # configured estimate, not metered
+└── lastUpdate
+```
+
+- `latest` powers the live dashboard.
+- `history` and `hourly` contain cumulative meter readings. The app derives usage deltas for analytics and estimates.
+- `devices/{deviceId}/state` carries the app's requested state. The ESP32 updates `applied` after handling the command.
+- The control page polls Firebase for status every two seconds; firmware polls for commands every 500 ms.
+
+## Project structure
+
+```text
+lib/
+├── bindings/       # GetX dependency bindings
+├── controllers/    # Application state and business logic
+├── models/         # Meter, analytics, billing, and device models
+├── routes/         # Application navigation
+├── services/       # Firebase REST and tariff services
+├── themes/         # Light and dark themes
+├── translations/   # English and Urdu strings
+├── views/          # Application screens
+└── widgets/        # Reusable UI components
+
+sketch_sep26a/
+└── sketch_sep26a.ino
+
+screenshots/
+```
+
+## Getting started
+
+### Requirements
+
+- Flutter SDK with Dart `^3.10.9`
+- Android or iOS device/emulator for the mobile application
+- For hardware deployment: ESP32, ABB B24 meter, compatible RS-485 transceiver, and a properly rated relay module
+- Arduino IDE and the `ModbusMaster` library to build the ESP32 firmware
+
+### Run the Flutter app
+
 ```bash
-git clone <repo-url> && cd finalyearproject
+git clone <repository-url>
+cd finalyearproject
 flutter pub get
 flutter run
 ```
 
-> macOS with custom SDK path: `export PATH="$HOME/development/flutter/bin:$PATH"` first.
+If Flutter is installed outside `PATH`, add its `bin` directory first:
 
-### Tests
 ```bash
-flutter test        # 16 tests: history/hourly parsing, KE bill calculator, widgets
-flutter analyze     # static analysis — clean
+export PATH="$HOME/development/flutter/bin:$PATH"
 ```
 
-### ESP32 firmware
-1. Arduino IDE → install **ModbusMaster** library
-2. Update `WIFI_SSID`, `WIFI_PASSWORD`, `FIREBASE_DB_URL` in the sketch
-3. Flash to ESP32 — it auto-connects, syncs NTP time, and starts publishing
+### Run checks
 
----
+```bash
+flutter test
+flutter analyze
+```
 
-## 🧾 Bill estimation accuracy
+### Build and flash the ESP32 firmware
 
-The KE calculator was validated against **real K-Electric bills** (Jun–Sep 2026) and matches to the paisa — including slab changes at 200/201 and 300 units, `Rs 300/kW` fixed charges (Sep 2026 tariff), FCA from older bills, PHL surcharge, 18% sales tax, MUCT, and TV licence fee. See `lib/models/ke_tariff_model.dart` and the test suite.
+1. Open `sketch_sep26a/sketch_sep26a.ino` in Arduino IDE.
+2. Install the **ModbusMaster** library and select the appropriate ESP32 board.
+3. Configure Wi-Fi, Firebase, meter, RS-485, and relay settings for your own installation.
+4. Verify the meter register map, relay polarity, GPIO assignments, and Firebase access rules before deployment.
+5. Flash the firmware and confirm meter readings and device status in Firebase before using the app controls.
 
----
+Never commit Wi-Fi passwords, service credentials, or other private configuration values to a public repository. Use appropriately restricted Firebase Database Rules for a deployment; do not rely on permissive public database access.
 
-## 📄 License
+> **Electrical safety:** mains-voltage wiring and relay installation should be designed and checked by a qualified person. Disconnect power before wiring, use correctly rated and enclosed components, and follow local electrical codes.
 
-Academic project — Final Year Project, 2026.
+## Bill estimates
+
+The tariff calculator is covered by regression tests based on K-Electric bill examples included in the test suite. Estimates depend on the configured tariff profile and the available consumption history; they are informational and may differ from the final bill.
+
+## License
+
+Academic Final Year Project, 2026. No separate open-source license is currently specified.

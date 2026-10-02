@@ -144,6 +144,24 @@ void main() {
     expect(hourly[2].kwh, closeTo(0.05, 0.0001));
   });
 
+  test('Hourly parser ignores a one-reading cumulative drop glitch', () {
+    final hourly = FirebaseHistoryService.parseHourlyUsage({
+      '2026-10-01': {'h1': 0.23},
+      '2026-10-02': {'h0': 0.82, 'h1': 0.85},
+      '2026-10-03': {'h0': 1.29, 'h1': 0.0, 'h2': 1.33},
+    });
+
+    expect(hourly.length, 4);
+    expect(hourly[0].hourStart, DateTime(2026, 10, 2, 0));
+    expect(hourly[0].kwh, closeTo(0.59, 0.0001));
+    expect(hourly[1].hourStart, DateTime(2026, 10, 2, 1));
+    expect(hourly[1].kwh, closeTo(0.03, 0.0001));
+    expect(hourly[2].hourStart, DateTime(2026, 10, 3, 0));
+    expect(hourly[2].kwh, closeTo(0.44, 0.0001));
+    expect(hourly[3].hourStart, DateTime(2026, 10, 3, 2));
+    expect(hourly[3].kwh, closeTo(0.04, 0.0001));
+  });
+
   // ── K-Electric: asal bills (Sanc Load 4 kW, tariff A1-R) ────────────────
   // fcaUnits = bill par FCA line ke saamne likhe units (2 mahine pehle ke).
   group('KE calculator matches real K-Electric bills', () {
